@@ -2,6 +2,14 @@
 
 MCP server for fetch web page content using Playwright headless browser.
 
+## Quick Start
+
+Run directly with npx:
+
+```bash
+npx -y github:jae-jae/fetch-mcp
+```
+
 ## Features
 
 - `fetch_url` - Retrieve web page content from a specified URL
