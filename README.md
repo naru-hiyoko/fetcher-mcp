@@ -46,8 +46,9 @@ On Windows: `%APPDATA%/Claude/claude_desktop_config.json`
 ```json
 {
   "mcpServers": {
-    "browser-mcp": {
-      "command": "/path/to/browser-mcp/build/index.js"
+    "fetch": {
+      "command": "npx",
+      "args": ["-y", "github:jae-jae/fetch-mcp"]
     }
   }
 }
