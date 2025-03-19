@@ -1,6 +1,6 @@
-# Browser MCP
+# Fetch MCP
 
-MCP server for retrieving web page content using Playwright headless browser.
+MCP server for fetch web page content using Playwright headless browser.
 
 ## Features
 
