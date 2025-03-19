@@ -22,7 +22,26 @@ npx -y github:jae-jae/fetch-mcp
     - `extractContent`: Whether to intelligently extract the main content, default is true
     - `maxLength`: Maximum length of returned content (in characters), default is no limit
 
-## Installation
+## Configuration MCP
+
+Configure this MCP server in Claude Desktop:
+
+On MacOS: `~/Library/Application Support/Claude/claude_desktop_config.json`
+
+On Windows: `%APPDATA%/Claude/claude_desktop_config.json`
+
+```json
+{
+  "mcpServers": {
+    "fetch": {
+      "command": "npx",
+      "args": ["-y", "github:jae-jae/fetch-mcp"]
+    }
+  }
+}
+```
+
+## Development
 
 ### Install Dependencies
 
@@ -42,24 +61,6 @@ npm run install-browser
 
 ```bash
 npm run build
-```
-
-## Configuration
-
-Configure this MCP server in Claude Desktop:
-
-On MacOS: `~/Library/Application Support/Claude/claude_desktop_config.json`
-On Windows: `%APPDATA%/Claude/claude_desktop_config.json`
-
-```json
-{
-  "mcpServers": {
-    "fetch": {
-      "command": "npx",
-      "args": ["-y", "github:jae-jae/fetch-mcp"]
-    }
-  }
-}
 ```
 
 ## Debugging
