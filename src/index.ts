@@ -12,6 +12,9 @@ import {
   ListToolsRequestSchema,
 } from "@modelcontextprotocol/sdk/types.js";
 import { chromium } from "playwright";
+import { JSDOM } from "jsdom";
+import { Readability } from "@mozilla/readability";
+import TurndownService from "turndown";
 
 /**
  * 创建MCP服务器
@@ -55,6 +58,14 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
               description:
                 "指定何时认为导航完成，可选值: 'load', 'domcontentloaded', 'networkidle', 'commit'，默认为 'load'",
             },
+            extractContent: {
+              type: "boolean",
+              description: "是否智能提取正文内容，默认为true",
+            },
+            maxLength: {
+              type: "number",
+              description: "返回内容的最大长度（字符数），默认不限制",
+            },
           },
           required: ["url"],
         },
@@ -88,6 +99,14 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
       ) as "load" | "domcontentloaded" | "networkidle" | "commit";
       console.error(`[FetchURL] 等待条件: ${waitUntil}`);
 
+      // 是否提取正文，默认为true
+      const extractContent = request.params.arguments?.extractContent !== false;
+      console.error(`[FetchURL] 是否提取正文: ${extractContent}`);
+
+      // 内容最大长度，默认不限制
+      const maxLength = Number(request.params.arguments?.maxLength) || 0;
+      console.error(`[FetchURL] 最大内容长度: ${maxLength || "不限制"}`);
+
       let browser = null;
       let page = null;
 
@@ -113,9 +132,9 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         });
 
         // 获取HTML内容
-        const content = await page.content();
+        const html = await page.content();
 
-        if (!content) {
+        if (!html) {
           console.error(`[Warning] 浏览器返回了空内容`);
           return {
             content: [
@@ -127,12 +146,51 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
           };
         }
 
-        console.error(`[FetchURL] 成功获取网页内容，长度: ${content.length}`);
+        console.error(`[FetchURL] 成功获取网页内容，长度: ${html.length}`);
+
+        // 根据参数处理内容
+        let processedContent;
+
+        if (extractContent) {
+          // 提取正文并转换为Markdown
+          console.error(`[FetchURL] 正在提取正文并转换为Markdown`);
+          const dom = new JSDOM(html, { url });
+          const reader = new Readability(dom.window.document);
+          const article = reader.parse();
+
+          if (!article) {
+            console.error(`[Warning] 无法提取正文，将返回原始HTML`);
+            processedContent = html;
+          } else {
+            const turndownService = new TurndownService();
+            processedContent = turndownService.turndown(article.content);
+            console.error(
+              `[FetchURL] 成功提取正文并转换为Markdown，长度: ${processedContent.length}`
+            );
+          }
+        } else {
+          // 将整个HTML转换为Markdown
+          console.error(`[FetchURL] 正在将整个HTML转换为Markdown`);
+          const turndownService = new TurndownService();
+          processedContent = turndownService.turndown(html);
+          console.error(
+            `[FetchURL] 成功将HTML转换为Markdown，长度: ${processedContent.length}`
+          );
+        }
+
+        // 如果设置了最大长度，截取内容
+        if (maxLength > 0 && processedContent.length > maxLength) {
+          console.error(
+            `[FetchURL] 内容超过最大长度，将截取至${maxLength}字符`
+          );
+          processedContent = processedContent.substring(0, maxLength);
+        }
+
         return {
           content: [
             {
               type: "text",
-              text: content,
+              text: processedContent,
             },
           ],
         };
