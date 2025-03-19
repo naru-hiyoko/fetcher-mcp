@@ -1,47 +1,47 @@
 # Browser MCP
 
-用于获取网页内容的 MCP 服务器，使用 Playwright 无头浏览器。
+MCP server for retrieving web page content using Playwright headless browser.
 
-## 功能
+## Features
 
-- `fetch_url` - 获取指定 URL 的网页内容
-  - 使用 Playwright 无头浏览器解析 JavaScript
-  - 支持智能提取正文内容并转换为 Markdown
-  - 支持以下参数:
-    - `url`: 要获取的网页 URL（必需参数）
-    - `timeout`: 页面加载超时时间（毫秒），默认为 30000（30 秒）
-    - `waitUntil`: 指定何时认为导航完成，可选值: 'load', 'domcontentloaded', 'networkidle', 'commit'，默认为 'load'
-    - `extractContent`: 是否智能提取正文内容，默认为 true
-    - `maxLength`: 返回内容的最大长度（字符数），默认不限制
+- `fetch_url` - Retrieve web page content from a specified URL
+  - Uses Playwright headless browser to parse JavaScript
+  - Supports intelligent extraction of main content and conversion to Markdown
+  - Supports the following parameters:
+    - `url`: The URL of the web page to fetch (required parameter)
+    - `timeout`: Page loading timeout in milliseconds, default is 30000 (30 seconds)
+    - `waitUntil`: Specifies when navigation is considered complete, options: 'load', 'domcontentloaded', 'networkidle', 'commit', default is 'load'
+    - `extractContent`: Whether to intelligently extract the main content, default is true
+    - `maxLength`: Maximum length of returned content (in characters), default is no limit
 
-## 安装
+## Installation
 
-### 安装依赖
+### Install Dependencies
 
 ```bash
 npm install
 ```
 
-### 安装 Playwright 浏览器
+### Install Playwright Browser
 
-安装 Playwright 所需的浏览器：
+Install the browsers needed for Playwright:
 
 ```bash
 npm run install-browser
 ```
 
-### 构建服务器
+### Build the Server
 
 ```bash
 npm run build
 ```
 
-## 配置
+## Configuration
 
-在 Claude Desktop 中配置此 MCP 服务器:
+Configure this MCP server in Claude Desktop:
 
-在 MacOS 上: `~/Library/Application Support/Claude/claude_desktop_config.json`
-在 Windows 上: `%APPDATA%/Claude/claude_desktop_config.json`
+On MacOS: `~/Library/Application Support/Claude/claude_desktop_config.json`
+On Windows: `%APPDATA%/Claude/claude_desktop_config.json`
 
 ```json
 {
@@ -53,15 +53,15 @@ npm run build
 }
 ```
 
-## 调试
+## Debugging
 
-使用 MCP Inspector 进行调试:
+Use MCP Inspector for debugging:
 
 ```bash
 npm run inspector
 ```
 
-也可以启用浏览器可见模式进行调试:
+You can also enable visible browser mode for debugging:
 
 ```bash
 node build/index.js --debug

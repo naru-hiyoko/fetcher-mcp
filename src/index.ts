@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 
 /**
- * 基于Playwright无头浏览器的MCP服务器
- * 提供获取网页内容的功能
+ * MCP server based on Playwright headless browser
+ * Provides functionality to fetch web page content
  */
 
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
@@ -16,11 +16,11 @@ import { JSDOM } from "jsdom";
 import { Readability } from "@mozilla/readability";
 import TurndownService from "turndown";
 
-// 解析命令行参数，检查是否有debug标志
+// Parse command line arguments, check for debug flag
 const isDebugMode = process.argv.includes("--debug");
 
 /**
- * 创建MCP服务器
+ * Create MCP server
  */
 const server = new Server(
   {
@@ -35,39 +35,42 @@ const server = new Server(
 );
 
 /**
- * 处理工具列表请求
- * 提供一个fetch_url工具用于获取网页内容
+ * Handle tool list requests
+ * Provides a fetch_url tool to retrieve web page content
  */
 server.setRequestHandler(ListToolsRequestSchema, async () => {
-  console.error("[Tools] 列出可用工具");
+  console.error("[Tools] List available tools");
   return {
     tools: [
       {
         name: "fetch_url",
-        description: "获取指定URL的网页内容",
+        description: "Retrieve web page content from a specified URL",
         inputSchema: {
           type: "object",
           properties: {
             url: {
               type: "string",
-              description: "要获取的URL",
+              description: "URL to fetch",
             },
             timeout: {
               type: "number",
-              description: "页面加载超时时间（毫秒），默认为30000（30秒）",
+              description:
+                "Page loading timeout in milliseconds, default is 30000 (30 seconds)",
             },
             waitUntil: {
               type: "string",
               description:
-                "指定何时认为导航完成，可选值: 'load', 'domcontentloaded', 'networkidle', 'commit'，默认为 'load'",
+                "Specifies when navigation is considered complete, options: 'load', 'domcontentloaded', 'networkidle', 'commit', default is 'load'",
             },
             extractContent: {
               type: "boolean",
-              description: "是否智能提取正文内容，默认为true",
+              description:
+                "Whether to intelligently extract the main content, default is true",
             },
             maxLength: {
               type: "number",
-              description: "返回内容的最大长度（字符数），默认不限制",
+              description:
+                "Maximum length of returned content (in characters), default is no limit",
             },
           },
           required: ["url"],
@@ -78,115 +81,125 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
 });
 
 /**
- * 处理工具调用请求
- * 实现fetch_url工具的逻辑
+ * Handle tool call requests
+ * Implement the logic for the fetch_url tool
  */
 server.setRequestHandler(CallToolRequestSchema, async (request) => {
   switch (request.params.name) {
     case "fetch_url": {
-      console.error(`[FetchURL] 正在获取: ${request.params.arguments?.url}`);
+      console.error(`[FetchURL] Fetching: ${request.params.arguments?.url}`);
 
       const url = String(request.params.arguments?.url || "");
       if (!url) {
-        console.error(`[Error] URL参数缺失`);
-        throw new Error("URL参数是必需的");
+        console.error(`[Error] URL parameter missing`);
+        throw new Error("URL parameter is required");
       }
 
-      // 默认超时30秒
+      // Default timeout is 30 seconds
       const timeout = Number(request.params.arguments?.timeout) || 30000;
-      console.error(`[FetchURL] 设置超时: ${timeout}ms`);
+      console.error(`[FetchURL] Setting timeout: ${timeout}ms`);
 
-      // 等待导航条件，默认为加载完成
+      // Wait until navigation condition, default is load complete
       const waitUntil = String(
         request.params.arguments?.waitUntil || "load"
       ) as "load" | "domcontentloaded" | "networkidle" | "commit";
-      console.error(`[FetchURL] 等待条件: ${waitUntil}`);
+      console.error(`[FetchURL] Wait condition: ${waitUntil}`);
 
-      // 是否提取正文，默认为true
+      // Whether to extract main content, default is true
       const extractContent = request.params.arguments?.extractContent !== false;
-      console.error(`[FetchURL] 是否提取正文: ${extractContent}`);
+      console.error(`[FetchURL] Extract content: ${extractContent}`);
 
-      // 内容最大长度，默认不限制
+      // Maximum content length, default is no limit
       const maxLength = Number(request.params.arguments?.maxLength) || 0;
-      console.error(`[FetchURL] 最大内容长度: ${maxLength || "不限制"}`);
+      console.error(
+        `[FetchURL] Maximum content length: ${maxLength || "no limit"}`
+      );
 
       let browser = null;
       let page = null;
 
       try {
-        // 启动浏览器，根据debug模式决定是否显示浏览器窗口
+        // Launch browser, decide whether to show browser window based on debug mode
         console.error(
-          `[FetchURL] 启动Playwright浏览器${isDebugMode ? "（调试模式）" : ""}`
+          `[FetchURL] Launching Playwright browser${
+            isDebugMode ? " (debug mode)" : ""
+          }`
         );
         browser = await chromium.launch({
-          headless: !isDebugMode, // 在调试模式下不使用无头模式，显示Chrome窗口
+          headless: !isDebugMode, // In debug mode, don't use headless mode, show Chrome window
         });
 
-        // 创建新页面
+        // Create new page
         const context = await browser.newContext();
         page = await context.newPage();
 
-        // 设置超时
+        // Set timeout
         page.setDefaultTimeout(timeout);
 
-        // 访问URL
-        console.error(`[FetchURL] 导航到URL: ${url}`);
+        // Navigate to URL
+        console.error(`[FetchURL] Navigating to URL: ${url}`);
         await page.goto(url, {
           timeout: timeout,
           waitUntil: waitUntil,
         });
 
-        // 获取HTML内容
+        // Get HTML content
         const html = await page.content();
 
         if (!html) {
-          console.error(`[Warning] 浏览器返回了空内容`);
+          console.error(`[Warning] Browser returned empty content`);
           return {
             content: [
               {
                 type: "text",
-                text: "获取网页内容失败: 浏览器返回了空内容",
+                text: "Failed to retrieve web page content: Browser returned empty content",
               },
             ],
           };
         }
 
-        console.error(`[FetchURL] 成功获取网页内容，长度: ${html.length}`);
+        console.error(
+          `[FetchURL] Successfully retrieved web page content, length: ${html.length}`
+        );
 
-        // 根据参数处理内容
+        // Process content based on parameters
         let processedContent;
 
         if (extractContent) {
-          // 提取正文并转换为Markdown
-          console.error(`[FetchURL] 正在提取正文并转换为Markdown`);
+          // Extract main content and convert to Markdown
+          console.error(
+            `[FetchURL] Extracting main content and converting to Markdown`
+          );
           const dom = new JSDOM(html, { url });
           const reader = new Readability(dom.window.document);
           const article = reader.parse();
 
           if (!article) {
-            console.error(`[Warning] 无法提取正文，将返回原始HTML`);
+            console.error(
+              `[Warning] Could not extract main content, will return original HTML`
+            );
             processedContent = html;
           } else {
             const turndownService = new TurndownService();
             processedContent = turndownService.turndown(article.content);
             console.error(
-              `[FetchURL] 成功提取正文并转换为Markdown，长度: ${processedContent.length}`
+              `[FetchURL] Successfully extracted main content and converted to Markdown, length: ${processedContent.length}`
             );
           }
         } else {
-          // 将整个HTML转换为Markdown
-          console.error(`[FetchURL] 正在将整个HTML转换为Markdown`);
+          // Convert entire HTML to Markdown
+          console.error(`[FetchURL] Converting entire HTML to Markdown`);
           const turndownService = new TurndownService();
           processedContent = turndownService.turndown(html);
           console.error(
-            `[FetchURL] 成功将HTML转换为Markdown，长度: ${processedContent.length}`
+            `[FetchURL] Successfully converted HTML to Markdown, length: ${processedContent.length}`
           );
         }
 
-        // 如果设置了最大长度，截取内容
+        // If maximum length is set, truncate content
         if (maxLength > 0 && processedContent.length > maxLength) {
           console.error(
-            `[FetchURL] 内容超过最大长度，将截取至${maxLength}字符`
+            `[FetchURL] Content exceeds maximum length, will truncate to ${maxLength} characters`
           );
           processedContent = processedContent.substring(0, maxLength);
         }
@@ -200,78 +213,82 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
           ],
         };
       } catch (error) {
-        let errorMessage = "未知错误";
+        let errorMessage = "Unknown error";
 
         if (error instanceof Error) {
           errorMessage = error.message;
 
-          // 检查是否是超时错误
+          // Check if it's a timeout error
           if (
             errorMessage.includes("Timeout") ||
             errorMessage.includes("timeout")
           ) {
-            console.error(`[Error] 获取URL超时: ${timeout}ms已过`);
+            console.error(`[Error] URL fetch timeout: ${timeout}ms elapsed`);
             return {
               content: [
                 {
                   type: "text",
-                  text: `获取网页内容超时: 操作在${timeout}ms内未完成`,
+                  text: `Web page content fetch timeout: Operation did not complete within ${timeout}ms`,
                 },
               ],
             };
           }
         }
 
-        console.error(`[Error] 获取URL失败: ${errorMessage}`);
+        console.error(`[Error] Failed to fetch URL: ${errorMessage}`);
         return {
           content: [
             {
               type: "text",
-              text: `获取网页内容失败: ${errorMessage}`,
+              text: `Failed to retrieve web page content: ${errorMessage}`,
             },
           ],
         };
       } finally {
-        // 确保资源被释放
+        // Ensure resources are released
         if (page) {
-          console.error(`[FetchURL] 关闭页面`);
+          console.error(`[FetchURL] Closing page`);
           await page
             .close()
-            .catch((e) => console.error(`[Error] 关闭页面失败: ${e.message}`));
+            .catch((e) =>
+              console.error(`[Error] Failed to close page: ${e.message}`)
+            );
         }
         if (browser) {
-          console.error(`[FetchURL] 关闭浏览器`);
+          console.error(`[FetchURL] Closing browser`);
           await browser
             .close()
             .catch((e) =>
-              console.error(`[Error] 关闭浏览器失败: ${e.message}`)
+              console.error(`[Error] Failed to close browser: ${e.message}`)
             );
         }
       }
     }
 
     default:
-      console.error(`[Error] 未知工具: ${request.params.name}`);
-      throw new Error(`未知工具: ${request.params.name}`);
+      console.error(`[Error] Unknown tool: ${request.params.name}`);
+      throw new Error(`Unknown tool: ${request.params.name}`);
   }
 });
 
 /**
- * 启动服务器
+ * Start the server
  */
 async function main() {
-  console.error("[Setup] 初始化浏览器MCP服务器...");
+  console.error("[Setup] Initializing browser MCP server...");
 
   if (isDebugMode) {
-    console.error("[Setup] 已启用调试模式，Chrome浏览器窗口将可见");
+    console.error(
+      "[Setup] Debug mode enabled, Chrome browser window will be visible"
+    );
   }
 
   const transport = new StdioServerTransport();
   await server.connect(transport);
-  console.error("[Setup] 服务器已启动");
+  console.error("[Setup] Server started");
 }
 
 main().catch((error) => {
-  console.error("[Error] 服务器错误:", error);
+  console.error("[Error] Server error:", error);
   process.exit(1);
 });
