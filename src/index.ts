@@ -16,6 +16,9 @@ import { JSDOM } from "jsdom";
 import { Readability } from "@mozilla/readability";
 import TurndownService from "turndown";
 
+// 解析命令行参数，检查是否有debug标志
+const isDebugMode = process.argv.includes("--debug");
+
 /**
  * 创建MCP服务器
  */
@@ -111,10 +114,12 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
       let page = null;
 
       try {
-        // 启动浏览器
-        console.error(`[FetchURL] 启动Playwright浏览器`);
+        // 启动浏览器，根据debug模式决定是否显示浏览器窗口
+        console.error(
+          `[FetchURL] 启动Playwright浏览器${isDebugMode ? "（调试模式）" : ""}`
+        );
         browser = await chromium.launch({
-          headless: true,
+          headless: !isDebugMode, // 在调试模式下不使用无头模式，显示Chrome窗口
         });
 
         // 创建新页面
@@ -256,6 +261,11 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
  */
 async function main() {
   console.error("[Setup] 初始化浏览器MCP服务器...");
+
+  if (isDebugMode) {
+    console.error("[Setup] 已启用调试模式，Chrome浏览器窗口将可见");
+  }
+
   const transport = new StdioServerTransport();
   await server.connect(transport);
   console.error("[Setup] 服务器已启动");
