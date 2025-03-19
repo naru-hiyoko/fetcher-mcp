@@ -6,8 +6,13 @@
 
 - `fetch_url` - 获取指定 URL 的网页内容
   - 使用 Playwright 无头浏览器解析 JavaScript
-  - 返回网页的 HTML 内容
-  - 支持配置导航等待条件和超时时间
+  - 支持智能提取正文内容并转换为 Markdown
+  - 支持以下参数:
+    - `url`: 要获取的网页 URL（必需参数）
+    - `timeout`: 页面加载超时时间（毫秒），默认为 30000（30 秒）
+    - `waitUntil`: 指定何时认为导航完成，可选值: 'load', 'domcontentloaded', 'networkidle', 'commit'，默认为 'load'
+    - `extractContent`: 是否智能提取正文内容，默认为 true
+    - `maxLength`: 返回内容的最大长度（字符数），默认不限制
 
 ## 安装
 
@@ -54,4 +59,10 @@ npm run build
 
 ```bash
 npm run inspector
+```
+
+也可以启用浏览器可见模式进行调试:
+
+```bash
+node build/index.js --debug
 ```
