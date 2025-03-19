@@ -1,12 +1,13 @@
 # Browser MCP
 
-用于获取网页内容的MCP服务器，使用Lightpanda无头浏览器。
+用于获取网页内容的 MCP 服务器，使用 Playwright 无头浏览器。
 
 ## 功能
 
-- `fetch_url` - 获取指定URL的网页内容
-  - 使用Lightpanda无头浏览器解析JavaScript
-  - 返回网页的HTML内容
+- `fetch_url` - 获取指定 URL 的网页内容
+  - 使用 Playwright 无头浏览器解析 JavaScript
+  - 返回网页的 HTML 内容
+  - 支持配置导航等待条件和超时时间
 
 ## 安装
 
@@ -16,20 +17,12 @@
 npm install
 ```
 
-### 下载Lightpanda
+### 安装 Playwright 浏览器
 
-对于MacOS:
-
-```bash
-curl -L -o lightpanda https://github.com/lightpanda-io/browser/releases/download/nightly/lightpanda-aarch64-macos && \
-chmod a+x ./lightpanda
-```
-
-对于Linux:
+安装 Playwright 所需的浏览器：
 
 ```bash
-curl -L -o lightpanda https://github.com/lightpanda-io/browser/releases/download/nightly/lightpanda-x86_64-linux && \
-chmod a+x ./lightpanda
+npm run install-browser
 ```
 
 ### 构建服务器
@@ -40,10 +33,10 @@ npm run build
 
 ## 配置
 
-在Claude Desktop中配置此MCP服务器:
+在 Claude Desktop 中配置此 MCP 服务器:
 
-在MacOS上: `~/Library/Application Support/Claude/claude_desktop_config.json`
-在Windows上: `%APPDATA%/Claude/claude_desktop_config.json`
+在 MacOS 上: `~/Library/Application Support/Claude/claude_desktop_config.json`
+在 Windows 上: `%APPDATA%/Claude/claude_desktop_config.json`
 
 ```json
 {
@@ -57,8 +50,8 @@ npm run build
 
 ## 调试
 
-使用MCP Inspector进行调试:
+使用 MCP Inspector 进行调试:
 
 ```bash
 npm run inspector
-``` 
+```
