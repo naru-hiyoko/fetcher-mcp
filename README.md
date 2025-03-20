@@ -21,6 +21,18 @@ npx -y github:jae-jae/fetch-mcp
     - `waitUntil`: Specifies when navigation is considered complete, options: 'load', 'domcontentloaded', 'networkidle', 'commit', default is 'load'
     - `extractContent`: Whether to intelligently extract the main content, default is true
     - `maxLength`: Maximum length of returned content (in characters), default is no limit
+    - `returnHtml`: Whether to return HTML content instead of Markdown, default is false
+
+- `fetch_urls` - Batch retrieve web page content from multiple URLs in parallel
+  - Uses multi-tab parallel fetching for improved performance
+  - Returns combined results with clear separation between webpages
+  - Supports the following parameters:
+    - `urls`: Array of URLs to fetch (required parameter)
+    - `timeout`: Page loading timeout in milliseconds, default is 30000 (30 seconds)
+    - `waitUntil`: Specifies when navigation is considered complete, options: 'load', 'domcontentloaded', 'networkidle', 'commit', default is 'load'
+    - `extractContent`: Whether to intelligently extract the main content, default is true
+    - `maxLength`: Maximum length of returned content (in characters), default is no limit
+    - `returnHtml`: Whether to return HTML content instead of Markdown, default is false
 
 ## Configuration MCP
 
