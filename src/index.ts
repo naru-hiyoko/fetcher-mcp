@@ -265,7 +265,20 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 
       try {
         browser = await chromium.launch({ headless: !isDebugMode });
-        const context = await browser.newContext();
+        const context = await browser.newContext({
+          javaScriptEnabled: true,
+          userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+        });
+
+        await context.route('**/*', async (route) => {
+          const resourceType = route.request().resourceType();
+          if (['image', 'stylesheet', 'font', 'media'].includes(resourceType)) {
+            await route.abort();
+          } else {
+            await route.continue();
+          }
+        });
+
         page = await context.newPage();
         
         const result = await processor.processPageContent(page, url);
@@ -296,7 +309,20 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
       let browser = null;
       try {
         browser = await chromium.launch({ headless: !isDebugMode });
-        const context = await browser.newContext();
+        const context = await browser.newContext({
+          javaScriptEnabled: true,
+          userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+        });
+
+        await context.route('**/*', async (route) => {
+          const resourceType = route.request().resourceType();
+          if (['image', 'stylesheet', 'font', 'media'].includes(resourceType)) {
+            await route.abort();
+          } else {
+            await route.continue();
+          }
+        });
+
         const processor = new WebContentProcessor(options, '[FetchURLs]');
         
         const results = await Promise.all(
