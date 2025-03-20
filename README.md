@@ -116,3 +116,7 @@ You can also enable visible browser mode for debugging:
 ```bash
 node build/index.js --debug
 ```
+
+## License
+
+Licensed under the [MIT License](https://choosealicense.com/licenses/mit/)
