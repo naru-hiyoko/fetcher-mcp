@@ -207,7 +207,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
             content: [
               {
                 type: "text",
-                text: "Failed to retrieve web page content: Browser returned empty content",
+                text: "<error>Failed to retrieve web page content: Browser returned empty content</error>",
               },
             ],
           };
@@ -299,7 +299,7 @@ ${processedContent}`;
               content: [
                 {
                   type: "text",
-                  text: `Web page content fetch timeout: Operation did not complete within ${timeout}ms`,
+                  text: `<error>Web page content fetch timeout: Operation did not complete within ${timeout}ms</error>`,
                 },
               ],
             };
@@ -311,7 +311,7 @@ ${processedContent}`;
           content: [
             {
               type: "text",
-              text: `Failed to retrieve web page content: ${errorMessage}`,
+              text: `<error>Failed to retrieve web page content: ${errorMessage}</error>`,
             },
           ],
         };
@@ -430,7 +430,7 @@ ${processedContent}`;
                     index,
                     url,
                     success: false,
-                    content: `Title: Error\nURL: ${url}\nContent:\n\nFailed to retrieve web page content: Browser returned empty content`,
+                    content: `Title: Error\nURL: ${url}\nContent:\n\n<error>Failed to retrieve web page content: Browser returned empty content</error>`,
                     error: "Browser returned empty content",
                   });
                   return;
@@ -535,7 +535,7 @@ ${processedContent}`;
                   index,
                   url,
                   success: false,
-                  content: `Title: Error\nURL: ${url}\nContent:\n\nFailed to retrieve web page content: ${errorMessage}`,
+                  content: `Title: Error\nURL: ${url}\nContent:\n\n<error>Failed to retrieve web page content: ${errorMessage}</error>`,
                   error: errorMessage,
                 });
               } finally {
@@ -565,7 +565,7 @@ ${processedContent}`;
                 index,
                 url,
                 success: false,
-                content: `Title: Error\nURL: ${url}\nContent:\n\nFailed to create browser tab: ${errorMessage}`,
+                content: `Title: Error\nURL: ${url}\nContent:\n\n<error>Failed to create browser tab: ${errorMessage}</error>`,
                 error: errorMessage,
               });
             }
@@ -614,7 +614,7 @@ ${processedContent}`;
           content: [
             {
               type: "text",
-              text: `Failed to retrieve web pages content: ${errorMessage}`,
+              text: `<error>Failed to retrieve web pages content: ${errorMessage}</error>`,
             },
           ],
         };
