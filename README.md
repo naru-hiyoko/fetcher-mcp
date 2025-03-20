@@ -1,3 +1,7 @@
+<div align="center">
+  <img src="icon.svg" width="100" height="100" alt="Fetch MCP Icon" />
+</div>
+
 # Fetch MCP
 
 MCP server for fetch web page content using Playwright headless browser.
