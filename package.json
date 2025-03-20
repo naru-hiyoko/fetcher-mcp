@@ -1,11 +1,11 @@
 {
-  "name": "fetch-mcp",
+  "name": "fetcher-mcp",
   "version": "0.1.0",
   "description": "MCP server for fetching web content using Playwright browser",
   "private": true,
   "type": "module",
   "bin": {
-    "fetch-mcp": "build/index.js"
+    "fetcher-mcp": "build/index.js"
   },
   "files": [
     "build"
