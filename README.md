@@ -10,6 +10,14 @@ Run directly with npx:
 npx -y github:jae-jae/fetch-mcp
 ```
 
+### Debug Mode
+
+Run with the `--debug` option to show the browser window for debugging:
+
+```bash
+npx -y github:jae-jae/fetch-mcp --debug
+```
+
 ## Features
 
 - `fetch_url` - Retrieve web page content from a specified URL
