@@ -72,6 +72,11 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
               description:
                 "Maximum length of returned content (in characters), default is no limit",
             },
+            returnHtml: {
+              type: "boolean",
+              description:
+                "Whether to return HTML content instead of Markdown, default is false",
+            },
           },
           required: ["url"],
         },
@@ -115,6 +120,10 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         `[FetchURL] Maximum content length: ${maxLength || "no limit"}`
       );
 
+      // Whether to return HTML instead of Markdown, default is false
+      const returnHtml = request.params.arguments?.returnHtml === true;
+      console.error(`[FetchURL] Return HTML: ${returnHtml}`);
+
       let browser = null;
       let page = null;
 
@@ -143,6 +152,10 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
           waitUntil: waitUntil,
         });
 
+        // Get page title
+        const pageTitle = await page.title();
+        console.error(`[FetchURL] Page title: ${pageTitle}`);
+
         // Get HTML content
         const html = await page.content();
 
@@ -164,35 +177,44 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 
         // Process content based on parameters
         let processedContent;
+        let contentToProcess;
 
+        // First, decide what content to process: full page or extracted main content
         if (extractContent) {
-          // Extract main content and convert to Markdown
-          console.error(
-            `[FetchURL] Extracting main content and converting to Markdown`
-          );
+          // Extract main content
+          console.error(`[FetchURL] Extracting main content`);
           const dom = new JSDOM(html, { url });
           const reader = new Readability(dom.window.document);
           const article = reader.parse();
 
           if (!article) {
             console.error(
-              `[Warning] Could not extract main content, will return original HTML`
+              `[Warning] Could not extract main content, will use full HTML`
             );
-            processedContent = html;
+            contentToProcess = html;
           } else {
-            const turndownService = new TurndownService();
-            processedContent = turndownService.turndown(article.content);
+            contentToProcess = article.content;
             console.error(
-              `[FetchURL] Successfully extracted main content and converted to Markdown, length: ${processedContent.length}`
+              `[FetchURL] Successfully extracted main content, length: ${contentToProcess.length}`
             );
           }
         } else {
-          // Convert entire HTML to Markdown
-          console.error(`[FetchURL] Converting entire HTML to Markdown`);
+          // Use full HTML
+          contentToProcess = html;
+        }
+
+        // Then, decide whether to return HTML or convert to Markdown
+        if (returnHtml) {
+          // Return as HTML
+          console.error(`[FetchURL] Returning HTML content`);
+          processedContent = contentToProcess;
+        } else {
+          // Convert to Markdown
+          console.error(`[FetchURL] Converting to Markdown`);
           const turndownService = new TurndownService();
-          processedContent = turndownService.turndown(html);
+          processedContent = turndownService.turndown(contentToProcess);
           console.error(
-            `[FetchURL] Successfully converted HTML to Markdown, length: ${processedContent.length}`
+            `[FetchURL] Successfully converted to Markdown, length: ${processedContent.length}`
           );
         }
 
@@ -204,11 +226,18 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
           processedContent = processedContent.substring(0, maxLength);
         }
 
+        // Format the response according to the requested format
+        const formattedResponse = `Title: ${pageTitle}
+URL: ${url}
+Content:
+
+${processedContent}`;
+
         return {
           content: [
             {
               type: "text",
-              text: processedContent,
+              text: formattedResponse,
             },
           ],
         };
