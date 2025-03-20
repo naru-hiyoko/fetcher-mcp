@@ -81,6 +81,48 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
           required: ["url"],
         },
       },
+      {
+        name: "fetch_urls",
+        description: "Retrieve web page content from multiple specified URLs",
+        inputSchema: {
+          type: "object",
+          properties: {
+            urls: {
+              type: "array",
+              items: {
+                type: "string",
+              },
+              description: "Array of URLs to fetch",
+            },
+            timeout: {
+              type: "number",
+              description:
+                "Page loading timeout in milliseconds, default is 30000 (30 seconds)",
+            },
+            waitUntil: {
+              type: "string",
+              description:
+                "Specifies when navigation is considered complete, options: 'load', 'domcontentloaded', 'networkidle', 'commit', default is 'load'",
+            },
+            extractContent: {
+              type: "boolean",
+              description:
+                "Whether to intelligently extract the main content, default is true",
+            },
+            maxLength: {
+              type: "number",
+              description:
+                "Maximum length of returned content (in characters), default is no limit",
+            },
+            returnHtml: {
+              type: "boolean",
+              description:
+                "Whether to return HTML content instead of Markdown, default is false",
+            },
+          },
+          required: ["urls"],
+        },
+      },
     ],
   };
 });
@@ -291,6 +333,291 @@ ${processedContent}`;
               console.error(`[Error] Failed to close browser: ${e.message}`)
             );
         }
+      }
+    }
+
+    case "fetch_urls": {
+      console.error(`[FetchURLs] Batch fetching multiple URLs`);
+
+      const urls = (request.params.arguments?.urls as string[]) || [];
+      if (!urls || !Array.isArray(urls) || urls.length === 0) {
+        console.error(`[Error] URLs parameter missing or empty`);
+        throw new Error(
+          "URLs parameter is required and must be a non-empty array"
+        );
+      }
+
+      console.error(`[FetchURLs] Number of URLs to fetch: ${urls.length}`);
+
+      // Get parameters with same defaults as fetch_url
+      const timeout = Number(request.params.arguments?.timeout) || 30000;
+      const waitUntil = String(
+        request.params.arguments?.waitUntil || "load"
+      ) as "load" | "domcontentloaded" | "networkidle" | "commit";
+      const extractContent = request.params.arguments?.extractContent !== false;
+      const maxLength = Number(request.params.arguments?.maxLength) || 0;
+      const returnHtml = request.params.arguments?.returnHtml === true;
+
+      console.error(
+        `[FetchURLs] Settings: timeout=${timeout}ms, waitUntil=${waitUntil}, extractContent=${extractContent}, maxLength=${
+          maxLength || "no limit"
+        }, returnHtml=${returnHtml}`
+      );
+
+      try {
+        // 使用多标签页同时抓取多个URL
+        console.error(`[FetchURLs] Using multi-tab parallel fetching`);
+
+        // 创建单个共享的浏览器实例
+        const browser = await chromium.launch({
+          headless: !isDebugMode,
+        });
+
+        // 创建浏览器上下文
+        const context = await browser.newContext();
+
+        // 存储每个URL的结果
+        const results: Array<{
+          index: number;
+          url: string;
+          success: boolean;
+          content: string;
+          error?: string;
+        }> = [];
+
+        try {
+          // 为每个URL创建一个处理任务
+          const fetchTasks = urls.map(async (url, index) => {
+            console.error(
+              `[FetchURLs] Creating tab for URL ${index + 1}/${
+                urls.length
+              }: ${url}`
+            );
+
+            try {
+              // 创建一个新的页面（标签页）
+              const page = await context.newPage();
+
+              try {
+                // 设置超时
+                page.setDefaultTimeout(timeout);
+
+                // 导航到URL
+                console.error(
+                  `[FetchURLs][Tab ${index + 1}] Navigating to URL: ${url}`
+                );
+                await page.goto(url, {
+                  timeout: timeout,
+                  waitUntil: waitUntil,
+                });
+
+                // 获取页面标题
+                const pageTitle = await page.title();
+                console.error(
+                  `[FetchURLs][Tab ${index + 1}] Page title: ${pageTitle}`
+                );
+
+                // 获取HTML内容
+                const html = await page.content();
+
+                if (!html) {
+                  console.error(
+                    `[FetchURLs][Tab ${
+                      index + 1
+                    }] Browser returned empty content`
+                  );
+                  results.push({
+                    index,
+                    url,
+                    success: false,
+                    content: `Title: Error\nURL: ${url}\nContent:\n\nFailed to retrieve web page content: Browser returned empty content`,
+                    error: "Browser returned empty content",
+                  });
+                  return;
+                }
+
+                console.error(
+                  `[FetchURLs][Tab ${
+                    index + 1
+                  }] Successfully retrieved web page content, length: ${
+                    html.length
+                  }`
+                );
+
+                // 处理内容
+                let processedContent;
+                let contentToProcess;
+
+                // 处理提取内容
+                if (extractContent) {
+                  console.error(
+                    `[FetchURLs][Tab ${index + 1}] Extracting main content`
+                  );
+                  const dom = new JSDOM(html, { url });
+                  const reader = new Readability(dom.window.document);
+                  const article = reader.parse();
+
+                  if (!article) {
+                    console.error(
+                      `[FetchURLs][Tab ${
+                        index + 1
+                      }] Could not extract main content, will use full HTML`
+                    );
+                    contentToProcess = html;
+                  } else {
+                    contentToProcess = article.content;
+                    console.error(
+                      `[FetchURLs][Tab ${
+                        index + 1
+                      }] Successfully extracted main content, length: ${
+                        contentToProcess.length
+                      }`
+                    );
+                  }
+                } else {
+                  contentToProcess = html;
+                }
+
+                // 决定是否返回HTML或转换为Markdown
+                if (returnHtml) {
+                  console.error(
+                    `[FetchURLs][Tab ${index + 1}] Returning HTML content`
+                  );
+                  processedContent = contentToProcess;
+                } else {
+                  console.error(
+                    `[FetchURLs][Tab ${index + 1}] Converting to Markdown`
+                  );
+                  const turndownService = new TurndownService();
+                  processedContent = turndownService.turndown(contentToProcess);
+                  console.error(
+                    `[FetchURLs][Tab ${
+                      index + 1
+                    }] Successfully converted to Markdown, length: ${
+                      processedContent.length
+                    }`
+                  );
+                }
+
+                // 如果设置了最大长度，截断内容
+                if (maxLength > 0 && processedContent.length > maxLength) {
+                  console.error(
+                    `[FetchURLs][Tab ${
+                      index + 1
+                    }] Content exceeds maximum length, will truncate to ${maxLength} characters`
+                  );
+                  processedContent = processedContent.substring(0, maxLength);
+                }
+
+                // 格式化结果
+                const formattedResult = `Title: ${pageTitle}
+URL: ${url}
+Content:
+
+${processedContent}`;
+
+                // 添加到结果数组
+                results.push({
+                  index,
+                  url,
+                  success: true,
+                  content: formattedResult,
+                });
+              } catch (error) {
+                // 处理单个标签页的错误
+                const errorMessage =
+                  error instanceof Error ? error.message : "Unknown error";
+                console.error(
+                  `[FetchURLs][Tab ${index + 1}] Error: ${errorMessage}`
+                );
+
+                results.push({
+                  index,
+                  url,
+                  success: false,
+                  content: `Title: Error\nURL: ${url}\nContent:\n\nFailed to retrieve web page content: ${errorMessage}`,
+                  error: errorMessage,
+                });
+              } finally {
+                // 关闭页面
+                console.error(`[FetchURLs][Tab ${index + 1}] Closing tab`);
+                await page
+                  .close()
+                  .catch((e) =>
+                    console.error(
+                      `[FetchURLs][Tab ${index + 1}] Failed to close tab: ${
+                        e.message
+                      }`
+                    )
+                  );
+              }
+            } catch (error) {
+              // 创建标签页失败的错误处理
+              const errorMessage =
+                error instanceof Error ? error.message : "Unknown error";
+              console.error(
+                `[FetchURLs] Failed to create tab for URL ${
+                  index + 1
+                }: ${errorMessage}`
+              );
+
+              results.push({
+                index,
+                url,
+                success: false,
+                content: `Title: Error\nURL: ${url}\nContent:\n\nFailed to create browser tab: ${errorMessage}`,
+                error: errorMessage,
+              });
+            }
+          });
+
+          // 等待所有抓取任务完成
+          console.error(
+            `[FetchURLs] Waiting for all ${urls.length} tabs to complete`
+          );
+          await Promise.all(fetchTasks);
+          console.error(`[FetchURLs] All tabs completed`);
+        } finally {
+          // 关闭浏览器
+          console.error(`[FetchURLs] Closing browser`);
+          await browser
+            .close()
+            .catch((e) =>
+              console.error(`[FetchURLs] Failed to close browser: ${e.message}`)
+            );
+        }
+
+        // 按原始URL顺序组合结果
+        let combinedResults = "";
+        results.sort((a, b) => a.index - b.index);
+
+        results.forEach((result, i) => {
+          combinedResults += `[webpage ${i + 1} begin]\n${
+            result.content
+          }\n[webpage ${i + 1} end]\n\n`;
+        });
+
+        return {
+          content: [
+            {
+              type: "text",
+              text: combinedResults.trim(),
+            },
+          ],
+        };
+      } catch (error) {
+        let errorMessage =
+          error instanceof Error ? error.message : "Unknown error";
+        console.error(`[Error] Failed to fetch URLs: ${errorMessage}`);
+
+        return {
+          content: [
+            {
+              type: "text",
+              text: `Failed to retrieve web pages content: ${errorMessage}`,
+            },
+          ],
+        };
       }
     }
 
