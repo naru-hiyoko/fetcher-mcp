@@ -1,14 +1,15 @@
 {
   "name": "fetcher-mcp",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "MCP server for fetching web content using Playwright browser",
-  "private": true,
+  "private": false,
   "type": "module",
   "bin": {
     "fetcher-mcp": "build/index.js"
   },
   "files": [
-    "build"
+    "build",
+    "icon.svg"
   ],
   "scripts": {
     "build": "tsc && node -e \"require('fs').chmodSync('build/index.js', '755')\"",

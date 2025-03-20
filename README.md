@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="icon.svg" width="100" height="100" alt="Fetcher MCP Icon" />
+  <img src="./icon.svg" width="100" height="100" alt="Fetcher MCP Icon" />
 </div>
 
 # Fetcher MCP
@@ -11,7 +11,7 @@ MCP server for fetch web page content using Playwright headless browser.
 Run directly with npx:
 
 ```bash
-npx -y github:jae-jae/fetcher-mcp
+npx -y fetcher-mcp
 ```
 
 ### Debug Mode
@@ -19,7 +19,7 @@ npx -y github:jae-jae/fetcher-mcp
 Run with the `--debug` option to show the browser window for debugging:
 
 ```bash
-npx -y github:jae-jae/fetcher-mcp --debug
+npx -y fetcher-mcp --debug
 ```
 
 ## Features
@@ -59,7 +59,7 @@ On Windows: `%APPDATA%/Claude/claude_desktop_config.json`
   "mcpServers": {
     "fetch": {
       "command": "npx",
-      "args": ["-y", "github:jae-jae/fetcher-mcp"]
+      "args": ["-y", "fetcher-mcp"]
     }
   }
 }
