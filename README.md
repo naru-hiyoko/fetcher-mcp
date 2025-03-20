@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="./icon.svg" width="100" height="100" alt="Fetcher MCP Icon" />
+  <img src="https://raw.githubusercontent.com/jae-jae/fetcher-mcp/refs/heads/main/icon.svg" width="100" height="100" alt="Fetcher MCP Icon" />
 </div>
 
 # Fetcher MCP
