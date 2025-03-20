@@ -365,18 +365,18 @@ ${processedContent}`;
       );
 
       try {
-        // 使用多标签页同时抓取多个URL
+        // Use multiple tabs to fetch URLs in parallel
         console.error(`[FetchURLs] Using multi-tab parallel fetching`);
 
-        // 创建单个共享的浏览器实例
+        // Create a single shared browser instance
         const browser = await chromium.launch({
           headless: !isDebugMode,
         });
 
-        // 创建浏览器上下文
+        // Create browser context
         const context = await browser.newContext();
 
-        // 存储每个URL的结果
+        // Store results for each URL
         const results: Array<{
           index: number;
           url: string;
@@ -386,7 +386,7 @@ ${processedContent}`;
         }> = [];
 
         try {
-          // 为每个URL创建一个处理任务
+          // Create a processing task for each URL
           const fetchTasks = urls.map(async (url, index) => {
             console.error(
               `[FetchURLs] Creating tab for URL ${index + 1}/${
@@ -395,14 +395,14 @@ ${processedContent}`;
             );
 
             try {
-              // 创建一个新的页面（标签页）
+              // Create a new page (tab)
               const page = await context.newPage();
 
               try {
-                // 设置超时
+                // Set timeout
                 page.setDefaultTimeout(timeout);
 
-                // 导航到URL
+                // Navigate to URL
                 console.error(
                   `[FetchURLs][Tab ${index + 1}] Navigating to URL: ${url}`
                 );
@@ -411,13 +411,13 @@ ${processedContent}`;
                   waitUntil: waitUntil,
                 });
 
-                // 获取页面标题
+                // Get page title
                 const pageTitle = await page.title();
                 console.error(
                   `[FetchURLs][Tab ${index + 1}] Page title: ${pageTitle}`
                 );
 
-                // 获取HTML内容
+                // Get HTML content
                 const html = await page.content();
 
                 if (!html) {
@@ -444,11 +444,11 @@ ${processedContent}`;
                   }`
                 );
 
-                // 处理内容
+                // Process content
                 let processedContent;
                 let contentToProcess;
 
-                // 处理提取内容
+                // Process content extraction
                 if (extractContent) {
                   console.error(
                     `[FetchURLs][Tab ${index + 1}] Extracting main content`
@@ -478,7 +478,7 @@ ${processedContent}`;
                   contentToProcess = html;
                 }
 
-                // 决定是否返回HTML或转换为Markdown
+                // Decide whether to return HTML or convert to Markdown
                 if (returnHtml) {
                   console.error(
                     `[FetchURLs][Tab ${index + 1}] Returning HTML content`
@@ -499,7 +499,7 @@ ${processedContent}`;
                   );
                 }
 
-                // 如果设置了最大长度，截断内容
+                // If maximum length is set, truncate content
                 if (maxLength > 0 && processedContent.length > maxLength) {
                   console.error(
                     `[FetchURLs][Tab ${
@@ -509,14 +509,14 @@ ${processedContent}`;
                   processedContent = processedContent.substring(0, maxLength);
                 }
 
-                // 格式化结果
+                // Format result
                 const formattedResult = `Title: ${pageTitle}
 URL: ${url}
 Content:
 
 ${processedContent}`;
 
-                // 添加到结果数组
+                // Add to results array
                 results.push({
                   index,
                   url,
@@ -524,7 +524,7 @@ ${processedContent}`;
                   content: formattedResult,
                 });
               } catch (error) {
-                // 处理单个标签页的错误
+                // Handle single tab error
                 const errorMessage =
                   error instanceof Error ? error.message : "Unknown error";
                 console.error(
@@ -539,7 +539,7 @@ ${processedContent}`;
                   error: errorMessage,
                 });
               } finally {
-                // 关闭页面
+                // Close page
                 console.error(`[FetchURLs][Tab ${index + 1}] Closing tab`);
                 await page
                   .close()
@@ -552,7 +552,7 @@ ${processedContent}`;
                   );
               }
             } catch (error) {
-              // 创建标签页失败的错误处理
+              // Handle tab creation error
               const errorMessage =
                 error instanceof Error ? error.message : "Unknown error";
               console.error(
@@ -571,14 +571,14 @@ ${processedContent}`;
             }
           });
 
-          // 等待所有抓取任务完成
+          // Wait for all fetch tasks to complete
           console.error(
             `[FetchURLs] Waiting for all ${urls.length} tabs to complete`
           );
           await Promise.all(fetchTasks);
           console.error(`[FetchURLs] All tabs completed`);
         } finally {
-          // 关闭浏览器
+          // Close browser
           console.error(`[FetchURLs] Closing browser`);
           await browser
             .close()
@@ -587,7 +587,7 @@ ${processedContent}`;
             );
         }
 
-        // 按原始URL顺序组合结果
+        // Combine results in original URL order
         let combinedResults = "";
         results.sort((a, b) => a.index - b.index);
 
