@@ -106,7 +106,11 @@ export async function fetchUrl(args: any) {
       content: [{ type: "text", text: result.content }]
     };
   } finally {
-    if (page) await page.close().catch(e => console.error(`[Error] Failed to close page: ${e.message}`));
-    if (browser) await browser.close().catch(e => console.error(`[Error] Failed to close browser: ${e.message}`));
+    if (!isDebugMode) {
+      if (page) await page.close().catch(e => console.error(`[Error] Failed to close page: ${e.message}`));
+      if (browser) await browser.close().catch(e => console.error(`[Error] Failed to close browser: ${e.message}`));
+    } else {
+      console.log(`[Debug] Browser and page kept open for debugging. URL: ${url}`);
+    }
   }
 }

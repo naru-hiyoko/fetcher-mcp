@@ -106,7 +106,11 @@ export async function fetchUrls(args: any) {
           const result = await processor.processPageContent(page, url);
           return { index, ...result } as FetchResult;
         } finally {
-          await page.close().catch(e => console.error(`[Error] Failed to close page: ${e.message}`));
+          if (!isDebugMode) {
+            await page.close().catch(e => console.error(`[Error] Failed to close page: ${e.message}`));
+          } else {
+            console.log(`[Debug] Page kept open for debugging. URL: ${url}`);
+          }
         }
       })
     );
@@ -120,6 +124,10 @@ export async function fetchUrls(args: any) {
       content: [{ type: "text", text: combinedResults }]
     };
   } finally {
-    if (browser) await browser.close().catch(e => console.error(`[Error] Failed to close browser: ${e.message}`));
+    if (!isDebugMode) {
+      if (browser) await browser.close().catch(e => console.error(`[Error] Failed to close browser: ${e.message}`));
+    } else {
+      console.log(`[Debug] Browser kept open for debugging. URLs: ${urls.join(', ')}`);
+    }
   }
 }
