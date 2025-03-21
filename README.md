@@ -83,67 +83,66 @@ On Windows: `%APPDATA%/Claude/claude_desktop_config.json`
 
 ## Tips
 
-### Handling Websites with Anti-Crawler Mechanisms
+### Handling Special Website Scenarios
 
-When dealing with websites that have anti-bot or anti-crawler protections:
-
-- **Wait for Complete Page Loading**: For websites that implement CAPTCHA, redirects, or other verification mechanisms, include in your prompt:
+#### Dealing with Anti-Crawler Mechanisms
+- **Wait for Complete Loading**: For websites using CAPTCHA, redirects, or other verification mechanisms, include in your prompt:
   ```
   Please wait for the page to fully load
   ```
-  This will signal the AI to use the `waitForNavigation: true` parameter when calling the MCP tool.
+  This will use the `waitForNavigation: true` parameter.
 
-- **Increase Timeouts**: If a website takes longer to load or has delayed verification screens:
+- **Increase Timeout Duration**: For websites that load slowly:
   ```
   Please set the page loading timeout to 60 seconds
   ```
-  This will adjust the `timeout` and `navigationTimeout` parameters accordingly.
+  This adjusts both `timeout` and `navigationTimeout` parameters accordingly.
 
-- **Preserve HTML Structure**: For websites where content extraction might fail:
+#### Content Retrieval Adjustments
+- **Preserve Original HTML Structure**: When content extraction might fail:
   ```
   Please preserve the original HTML content
   ```
-  This will set the `extractContent: false` and potentially `returnHtml: true` parameters.
+  Sets `extractContent: false` and `returnHtml: true`.
 
-- **Fetch Complete Page Content**: If the extracted content is too limited or missing important information:
+- **Fetch Complete Page Content**: When extracted content is too limited:
   ```
   Please fetch the complete webpage content instead of just the main content
   ```
-  This will signal the AI to set `extractContent: false` to retrieve the full HTML content.
+  Sets `extractContent: false`.
 
-- **Return Content as HTML**: When you need HTML instead of the default Markdown format:
+- **Return Content as HTML**: When HTML format is needed instead of default Markdown:
   ```
   Please return the content in HTML format
   ```
-  This will set the `returnHtml: true` parameter.
+  Sets `returnHtml: true`.
 
-- **Enable Debug Mode Dynamically**: To show the browser window for debugging during a specific fetch operation:
+### Debugging and Authentication
+
+#### Enabling Debug Mode
+- **Dynamic Debug Activation**: To display the browser window during a specific fetch operation:
   ```
   Please enable debug mode for this fetch operation
   ```
-  This will set the `debug: true` parameter, showing the browser window even if you started the server without the `--debug` flag.
+  This sets `debug: true` even if the server was started without the `--debug` flag.
 
-### Using Custom Cookies for Authentication
-
-For websites that require login or authentication:
-
-- **Enable Debug Mode for Manual Login**: To log in with your own credentials and use those cookies:
+#### Using Custom Cookies for Authentication
+- **Manual Login**: To login using your own credentials:
   ```
   Please run in debug mode so I can manually log in to the website
   ```
-  This will set the `debug: true` parameter or use the `--debug` flag, keeping the browser window open so you can manually log in before content is fetched.
+  Sets `debug: true` or uses the `--debug` flag, keeping the browser window open for manual login.
 
-- **Interact with Debug Browser**: When debug mode is enabled (either through the parameter or command line flag):
-  1. The browser window will remain open
+- **Interacting with Debug Browser**: When debug mode is enabled:
+  1. The browser window remains open
   2. You can manually log into the website using your credentials
-  3. After login is complete, the content will be fetched with your authenticated session
-  4. This allows accessing content that requires authentication without sharing credentials
+  3. After login is complete, content will be fetched with your authenticated session
 
-- **Dynamic Debug Mode**: If the server is already running without the `--debug` flag, you can still enable debug mode for a specific request:
+- **Enable Debug for Specific Requests**: Even if the server is already running, you can enable debug mode for a specific request:
   ```
   Please enable debug mode for this authentication step
   ```
-  This will set the `debug: true` parameter for this specific request only, opening the browser window for manual login.
+  Sets `debug: true` for this specific request only, opening the browser window for manual login.
 
 ## Development
 
