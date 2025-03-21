@@ -38,6 +38,25 @@ Run with the `--debug` option to show the browser window for debugging:
 npx -y fetcher-mcp --debug
 ```
 
+## Configuration MCP
+
+Configure this MCP server in Claude Desktop:
+
+On MacOS: `~/Library/Application Support/Claude/claude_desktop_config.json`
+
+On Windows: `%APPDATA%/Claude/claude_desktop_config.json`
+
+```json
+{
+  "mcpServers": {
+    "fetch": {
+      "command": "npx",
+      "args": ["-y", "fetcher-mcp"]
+    }
+  }
+}
+```
+
 ## Features
 
 - `fetch_url` - Retrieve web page content from a specified URL
@@ -61,24 +80,58 @@ npx -y fetcher-mcp --debug
     - `urls`: Array of URLs to fetch (required parameter)
     - Other parameters are the same as `fetch_url`
 
-## Configuration MCP
+## Tips
 
-Configure this MCP server in Claude Desktop:
+### Handling Websites with Anti-Crawler Mechanisms
 
-On MacOS: `~/Library/Application Support/Claude/claude_desktop_config.json`
+When dealing with websites that have anti-bot or anti-crawler protections:
 
-On Windows: `%APPDATA%/Claude/claude_desktop_config.json`
+- **Wait for Complete Page Loading**: For websites that implement CAPTCHA, redirects, or other verification mechanisms, include in your prompt:
+  ```
+  Please wait for the page to fully load
+  ```
+  This will signal the AI to use the `waitForNavigation: true` parameter when calling the MCP tool.
 
-```json
-{
-  "mcpServers": {
-    "fetch": {
-      "command": "npx",
-      "args": ["-y", "fetcher-mcp"]
-    }
-  }
-}
-```
+- **Increase Timeouts**: If a website takes longer to load or has delayed verification screens:
+  ```
+  Please set the page loading timeout to 60 seconds
+  ```
+  This will adjust the `timeout` and `navigationTimeout` parameters accordingly.
+
+- **Preserve HTML Structure**: For websites where content extraction might fail:
+  ```
+  Please preserve the original HTML content
+  ```
+  This will set the `extractContent: false` and potentially `returnHtml: true` parameters.
+
+- **Fetch Complete Page Content**: If the extracted content is too limited or missing important information:
+  ```
+  Please fetch the complete webpage content instead of just the main content
+  ```
+  This will signal the AI to set `extractContent: false` to retrieve the full HTML content.
+
+- **Return Content as HTML**: When you need HTML instead of the default Markdown format:
+  ```
+  Please return the content in HTML format
+  ```
+  This will set the `returnHtml: true` parameter.
+
+### Using Custom Cookies for Authentication
+
+For websites that require login or authentication:
+
+- **Enable Debug Mode for Manual Login**: To log in with your own credentials and use those cookies:
+  ```
+  Please run in debug mode so I can manually log in to the website
+  ```
+  This will start the server with the `--debug` flag, keeping the browser window open so you can manually log in before content is fetched.
+
+- **Interact with Debug Browser**: When debug mode is enabled:
+  1. The browser window will remain open
+  2. You can manually log into the website using your credentials
+  3. After login is complete, the content will be fetched with your authenticated session
+  4. This allows accessing content that requires authentication without sharing credentials
+
 
 ## Development
 
