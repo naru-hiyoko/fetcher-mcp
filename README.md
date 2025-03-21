@@ -72,6 +72,7 @@ On Windows: `%APPDATA%/Claude/claude_desktop_config.json`
     - `waitForNavigation`: Whether to wait for additional navigation after initial page load (useful for sites with anti-bot verification), default is false
     - `navigationTimeout`: Maximum time to wait for additional navigation in milliseconds, default is 10000 (10 seconds)
     - `disableMedia`: Whether to disable media resources (images, stylesheets, fonts, media), default is true
+    - `debug`: Whether to enable debug mode (showing browser window), overrides the --debug command line flag if specified
 
 - `fetch_urls` - Batch retrieve web page content from multiple URLs in parallel
   - Uses multi-tab parallel fetching for improved performance
@@ -116,6 +117,12 @@ When dealing with websites that have anti-bot or anti-crawler protections:
   ```
   This will set the `returnHtml: true` parameter.
 
+- **Enable Debug Mode Dynamically**: To show the browser window for debugging during a specific fetch operation:
+  ```
+  Please enable debug mode for this fetch operation
+  ```
+  This will set the `debug: true` parameter, showing the browser window even if you started the server without the `--debug` flag.
+
 ### Using Custom Cookies for Authentication
 
 For websites that require login or authentication:
@@ -124,14 +131,19 @@ For websites that require login or authentication:
   ```
   Please run in debug mode so I can manually log in to the website
   ```
-  This will start the server with the `--debug` flag, keeping the browser window open so you can manually log in before content is fetched.
+  This will set the `debug: true` parameter or use the `--debug` flag, keeping the browser window open so you can manually log in before content is fetched.
 
-- **Interact with Debug Browser**: When debug mode is enabled:
+- **Interact with Debug Browser**: When debug mode is enabled (either through the parameter or command line flag):
   1. The browser window will remain open
   2. You can manually log into the website using your credentials
   3. After login is complete, the content will be fetched with your authenticated session
   4. This allows accessing content that requires authentication without sharing credentials
 
+- **Dynamic Debug Mode**: If the server is already running without the `--debug` flag, you can still enable debug mode for a specific request:
+  ```
+  Please enable debug mode for this authentication step
+  ```
+  This will set the `debug: true` parameter for this specific request only, opening the browser window for manual login.
 
 ## Development
 

@@ -61,6 +61,11 @@ export const fetchUrlsTool = {
         description:
           "Whether to disable media resources (images, stylesheets, fonts, media), default is true",
       },
+      debug: {
+        type: "boolean",
+        description:
+          "Whether to enable debug mode (showing browser window), overrides the --debug command line flag if specified",
+      },
     },
     required: ["urls"],
   }
@@ -83,12 +88,20 @@ export async function fetchUrls(args: any) {
     returnHtml: args?.returnHtml === true,
     waitForNavigation: args?.waitForNavigation === true,
     navigationTimeout: Number(args?.navigationTimeout) || 10000,
-    disableMedia: args?.disableMedia !== false
+    disableMedia: args?.disableMedia !== false,
+    debug: args?.debug
   };
+
+  // 确定是否启用调试模式（优先使用参数指定的值，否则使用命令行标志）
+  const useDebugMode = options.debug !== undefined ? options.debug : isDebugMode;
+  
+  if (useDebugMode) {
+    console.log(`[Debug] Debug mode enabled for URLs: ${urls.join(', ')}`);
+  }
 
   let browser = null;
   try {
-    browser = await chromium.launch({ headless: !isDebugMode });
+    browser = await chromium.launch({ headless: !useDebugMode });
     const context = await browser.newContext({
       javaScriptEnabled: true,
       userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
@@ -112,7 +125,7 @@ export async function fetchUrls(args: any) {
           const result = await processor.processPageContent(page, url);
           return { index, ...result } as FetchResult;
         } finally {
-          if (!isDebugMode) {
+          if (!useDebugMode) {
             await page.close().catch(e => console.error(`[Error] Failed to close page: ${e.message}`));
           } else {
             console.log(`[Debug] Page kept open for debugging. URL: ${url}`);
@@ -130,7 +143,7 @@ export async function fetchUrls(args: any) {
       content: [{ type: "text", text: combinedResults }]
     };
   } finally {
-    if (!isDebugMode) {
+    if (!useDebugMode) {
       if (browser) await browser.close().catch(e => console.error(`[Error] Failed to close browser: ${e.message}`));
     } else {
       console.log(`[Debug] Browser kept open for debugging. URLs: ${urls.join(', ')}`);

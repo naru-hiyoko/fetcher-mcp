@@ -7,6 +7,7 @@ export interface FetchOptions {
     waitForNavigation: boolean;
     navigationTimeout: number;
     disableMedia: boolean;
+    debug?: boolean;
   }
   
   export interface FetchResult {
