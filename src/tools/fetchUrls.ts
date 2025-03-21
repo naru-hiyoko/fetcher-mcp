@@ -46,6 +46,16 @@ export const fetchUrlsTool = {
         description:
           "Whether to return HTML content instead of Markdown, default is false",
       },
+      waitForNavigation: {
+        type: "boolean",
+        description:
+          "Whether to wait for additional navigation after initial page load (useful for sites with anti-bot verification), default is false",
+      },
+      navigationTimeout: {
+        type: "number",
+        description:
+          "Maximum time to wait for additional navigation in milliseconds, default is 10000 (10 seconds)",
+      },
     },
     required: ["urls"],
   }
@@ -65,7 +75,9 @@ export async function fetchUrls(args: any) {
     waitUntil: String(args?.waitUntil || "load") as 'load' | 'domcontentloaded' | 'networkidle' | 'commit',
     extractContent: args?.extractContent !== false,
     maxLength: Number(args?.maxLength) || 0,
-    returnHtml: args?.returnHtml === true
+    returnHtml: args?.returnHtml === true,
+    waitForNavigation: args?.waitForNavigation === true,
+    navigationTimeout: Number(args?.navigationTimeout) || 10000
   };
 
   let browser = null;

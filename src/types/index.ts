@@ -4,6 +4,8 @@ export interface FetchOptions {
     extractContent: boolean;
     maxLength: number;
     returnHtml: boolean;
+    waitForNavigation: boolean;
+    navigationTimeout: number;
   }
   
   export interface FetchResult {

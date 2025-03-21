@@ -50,6 +50,8 @@ npx -y fetcher-mcp --debug
     - `extractContent`: Whether to intelligently extract the main content, default is true
     - `maxLength`: Maximum length of returned content (in characters), default is no limit
     - `returnHtml`: Whether to return HTML content instead of Markdown, default is false
+    - `waitForNavigation`: Whether to wait for additional navigation after initial page load (useful for sites with anti-bot verification), default is false
+    - `navigationTimeout`: Maximum time to wait for additional navigation in milliseconds, default is 10000 (10 seconds)
 
 - `fetch_urls` - Batch retrieve web page content from multiple URLs in parallel
   - Uses multi-tab parallel fetching for improved performance
@@ -61,6 +63,8 @@ npx -y fetcher-mcp --debug
     - `extractContent`: Whether to intelligently extract the main content, default is true
     - `maxLength`: Maximum length of returned content (in characters), default is no limit
     - `returnHtml`: Whether to return HTML content instead of Markdown, default is false
+    - `waitForNavigation`: Whether to wait for additional navigation after initial page load (useful for sites with anti-bot verification), default is false
+    - `navigationTimeout`: Maximum time to wait for additional navigation in milliseconds, default is 10000 (10 seconds)
 
 ## Configuration MCP
 

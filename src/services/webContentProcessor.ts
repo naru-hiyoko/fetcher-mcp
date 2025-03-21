@@ -24,6 +24,39 @@ export class WebContentProcessor {
         waitUntil: this.options.waitUntil,
       });
 
+      // Handle possible anti-bot verification and redirection
+      if (this.options.waitForNavigation) {
+        console.error(`${this.logPrefix} Waiting for possible navigation/redirection...`);
+        
+        try {
+          // Create a promise to wait for page navigation events
+          const navigationPromise = page.waitForNavigation({
+            timeout: this.options.navigationTimeout,
+            waitUntil: this.options.waitUntil
+          });
+          
+          // Set a timeout
+          const timeoutPromise = new Promise((_, reject) => {
+            setTimeout(() => {
+              reject(new Error('Navigation timeout'));
+            }, this.options.navigationTimeout);
+          });
+          
+          // Wait for navigation event or timeout, whichever occurs first
+          await Promise.race([navigationPromise, timeoutPromise])
+            .then(() => {
+              console.error(`${this.logPrefix} Page navigated/redirected successfully`);
+            })
+            .catch(e => {
+              // If timeout occurs but page may have already loaded, we can continue
+              console.error(`${this.logPrefix} No navigation occurred or navigation timeout: ${e.message}`);
+            });
+        } catch (navError: any) {
+          console.error(`${this.logPrefix} Error waiting for navigation: ${navError.message}`);
+          // Continue processing the page even if there are navigation issues
+        }
+      }
+
       // Get page title
       const pageTitle = await page.title();
       console.error(`${this.logPrefix} Page title: ${pageTitle}`);
