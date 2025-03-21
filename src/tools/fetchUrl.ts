@@ -53,6 +53,11 @@ export const fetchUrlTool = {
         description:
           "Maximum time to wait for additional navigation in milliseconds, default is 10000 (10 seconds)",
       },
+      disableMedia: {
+        type: "boolean",
+        description:
+          "Whether to disable media resources (images, stylesheets, fonts, media), default is true",
+      },
     },
     required: ["url"],
   }
@@ -75,7 +80,8 @@ export async function fetchUrl(args: any) {
     maxLength: Number(args?.maxLength) || 0,
     returnHtml: args?.returnHtml === true,
     waitForNavigation: args?.waitForNavigation === true,
-    navigationTimeout: Number(args?.navigationTimeout) || 10000
+    navigationTimeout: Number(args?.navigationTimeout) || 10000,
+    disableMedia: args?.disableMedia !== false
   };
 
   const processor = new WebContentProcessor(options, '[FetchURL]');
@@ -91,7 +97,7 @@ export async function fetchUrl(args: any) {
 
     await context.route('**/*', async (route) => {
       const resourceType = route.request().resourceType();
-      if (['image', 'stylesheet', 'font', 'media'].includes(resourceType)) {
+      if (options.disableMedia && ['image', 'stylesheet', 'font', 'media'].includes(resourceType)) {
         await route.abort();
       } else {
         await route.continue();

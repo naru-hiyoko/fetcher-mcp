@@ -6,6 +6,7 @@ export interface FetchOptions {
     returnHtml: boolean;
     waitForNavigation: boolean;
     navigationTimeout: number;
+    disableMedia: boolean;
   }
   
   export interface FetchResult {
