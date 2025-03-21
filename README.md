@@ -49,7 +49,7 @@ On Windows: `%APPDATA%/Claude/claude_desktop_config.json`
 ```json
 {
   "mcpServers": {
-    "fetch": {
+    "fetcher": {
       "command": "npx",
       "args": ["-y", "fetcher-mcp"]
     }
