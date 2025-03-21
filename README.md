@@ -59,14 +59,7 @@ npx -y fetcher-mcp --debug
   - Returns combined results with clear separation between webpages
   - Supports the following parameters:
     - `urls`: Array of URLs to fetch (required parameter)
-    - `timeout`: Page loading timeout in milliseconds, default is 30000 (30 seconds)
-    - `waitUntil`: Specifies when navigation is considered complete, options: 'load', 'domcontentloaded', 'networkidle', 'commit', default is 'load'
-    - `extractContent`: Whether to intelligently extract the main content, default is true
-    - `maxLength`: Maximum length of returned content (in characters), default is no limit
-    - `returnHtml`: Whether to return HTML content instead of Markdown, default is false
-    - `waitForNavigation`: Whether to wait for additional navigation after initial page load (useful for sites with anti-bot verification), default is false
-    - `navigationTimeout`: Maximum time to wait for additional navigation in milliseconds, default is 10000 (10 seconds)
-    - `disableMedia`: Whether to disable media resources (images, stylesheets, fonts, media), default is true
+    - Other parameters are the same as `fetch_url`
 
 ## Configuration MCP
 
