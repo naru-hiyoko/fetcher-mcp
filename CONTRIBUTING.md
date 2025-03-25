@@ -27,7 +27,7 @@ We welcome contributions to Fetcher MCP! By participating in this project, you a
 ## Submitting Issues
 
 *   Use the issue templates provided.
-*   Provide 详细的描述 of the issue, including steps to reproduce it.
+*   Provide detailed description of the issue, including steps to reproduce it.
 *   If possible, suggest a solution or workaround.
 
 ## Submitting Pull Requests

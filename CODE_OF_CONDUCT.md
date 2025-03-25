@@ -118,7 +118,3 @@ version 2.1, available at
 
 For answers to common questions about this code of conduct, see the FAQ at
 [https://www.contributor-covenant.org/faq](https://www.contributor-covenant.org/faq).
-
----
-
-**Note:** 请将 `[INSERT CONTACT METHOD]` 替换为合适的联系方式，例如项目维护者的邮箱或 issue 跟踪链接。
