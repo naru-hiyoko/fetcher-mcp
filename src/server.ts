@@ -3,7 +3,8 @@ import {
   CallToolRequestSchema,
   ListToolsRequestSchema,
 } from "@modelcontextprotocol/sdk/types.js";
-import { tools, toolHandlers } from './tools/index.js';
+import { tools, toolHandlers } from "./tools/index.js";
+import { logger } from "./utils/logger.js";
 
 export function createServer() {
   const server = new Server(
@@ -19,9 +20,9 @@ export function createServer() {
   );
 
   server.setRequestHandler(ListToolsRequestSchema, async () => {
-    console.error("[Tools] List available tools");
+    logger.info("[Tools] List available tools");
     return {
-      tools
+      tools,
     };
   });
 
@@ -32,11 +33,11 @@ export function createServer() {
   server.setRequestHandler(CallToolRequestSchema, async (request) => {
     const toolName = request.params.name;
     const handler = toolHandlers[toolName];
-    
+
     if (!handler) {
       throw new Error(`Unknown tool: ${toolName}`);
     }
-    
+
     return handler(request.params.arguments);
   });
 

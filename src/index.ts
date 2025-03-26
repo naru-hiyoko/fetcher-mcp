@@ -7,6 +7,7 @@
 
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { createServer } from "./server.js";
+import { logger } from "./utils/logger.js";
 
 // Parse command line arguments, check for debug flag
 export const isDebugMode = process.argv.includes("--debug");
@@ -15,10 +16,10 @@ export const isDebugMode = process.argv.includes("--debug");
  * Start the server
  */
 async function main() {
-  console.error("[Setup] Initializing browser MCP server...");
+  logger.info("[Setup] Initializing browser MCP server...");
 
   if (isDebugMode) {
-    console.error(
+    logger.error(
       "[Setup] Debug mode enabled, Chrome browser window will be visible"
     );
   }
@@ -26,10 +27,10 @@ async function main() {
   const server = createServer();
   const transport = new StdioServerTransport();
   await server.connect(transport);
-  console.error("[Setup] Server started");
+  logger.info("[Setup] Server started");
 }
 
 main().catch((error) => {
-  console.error("[Error] Server error:", error);
+  logger.error(`[Error] Server error: ${error}`);
   process.exit(1);
 });

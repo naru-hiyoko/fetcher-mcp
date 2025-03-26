@@ -2,12 +2,13 @@ import { JSDOM } from "jsdom";
 import { Readability } from "@mozilla/readability";
 import TurndownService from "turndown";
 import { FetchOptions, FetchResult } from "../types/index.js";
+import { logger } from "../utils/logger.js";
 
 export class WebContentProcessor {
   private options: FetchOptions;
   private logPrefix: string;
 
-  constructor(options: FetchOptions, logPrefix: string = '') {
+  constructor(options: FetchOptions, logPrefix: string = "") {
     this.options = options;
     this.logPrefix = logPrefix;
   }
@@ -18,7 +19,7 @@ export class WebContentProcessor {
       page.setDefaultTimeout(this.options.timeout);
 
       // Navigate to URL
-      console.error(`${this.logPrefix} Navigating to URL: ${url}`);
+      logger.info(`${this.logPrefix} Navigating to URL: ${url}`);
       await page.goto(url, {
         timeout: this.options.timeout,
         waitUntil: this.options.waitUntil,
@@ -26,106 +27,128 @@ export class WebContentProcessor {
 
       // Handle possible anti-bot verification and redirection
       if (this.options.waitForNavigation) {
-        console.error(`${this.logPrefix} Waiting for possible navigation/redirection...`);
-        
+        logger.info(
+          `${this.logPrefix} Waiting for possible navigation/redirection...`
+        );
+
         try {
           // Create a promise to wait for page navigation events
           const navigationPromise = page.waitForNavigation({
             timeout: this.options.navigationTimeout,
-            waitUntil: this.options.waitUntil
+            waitUntil: this.options.waitUntil,
           });
-          
+
           // Set a timeout
           const timeoutPromise = new Promise((_, reject) => {
             setTimeout(() => {
-              reject(new Error('Navigation timeout'));
+              reject(new Error("Navigation timeout"));
             }, this.options.navigationTimeout);
           });
-          
+
           // Wait for navigation event or timeout, whichever occurs first
           await Promise.race([navigationPromise, timeoutPromise])
             .then(() => {
-              console.error(`${this.logPrefix} Page navigated/redirected successfully`);
+              logger.info(
+                `${this.logPrefix} Page navigated/redirected successfully`
+              );
             })
-            .catch(e => {
+            .catch((e) => {
               // If timeout occurs but page may have already loaded, we can continue
-              console.error(`${this.logPrefix} No navigation occurred or navigation timeout: ${e.message}`);
+              logger.warn(
+                `${this.logPrefix} No navigation occurred or navigation timeout: ${e.message}`
+              );
             });
         } catch (navError: any) {
-          console.error(`${this.logPrefix} Error waiting for navigation: ${navError.message}`);
+          logger.error(
+            `${this.logPrefix} Error waiting for navigation: ${navError.message}`
+          );
           // Continue processing the page even if there are navigation issues
         }
       }
 
       // Get page title
       const pageTitle = await page.title();
-      console.error(`${this.logPrefix} Page title: ${pageTitle}`);
+      logger.info(`${this.logPrefix} Page title: ${pageTitle}`);
 
       // Get HTML content
       const html = await page.content();
 
       if (!html) {
-        console.error(`${this.logPrefix} Browser returned empty content`);
+        logger.warn(`${this.logPrefix} Browser returned empty content`);
         return {
           success: false,
           content: `Title: Error\nURL: ${url}\nContent:\n\n<error>Failed to retrieve web page content: Browser returned empty content</error>`,
-          error: "Browser returned empty content"
+          error: "Browser returned empty content",
         };
       }
 
-      console.error(`${this.logPrefix} Successfully retrieved web page content, length: ${html.length}`);
+      logger.info(
+        `${this.logPrefix} Successfully retrieved web page content, length: ${html.length}`
+      );
 
       const processedContent = await this.processContent(html, url);
-      
+
       // Format the response
       const formattedContent = `Title: ${pageTitle}\nURL: ${url}\nContent:\n\n${processedContent}`;
 
       return {
         success: true,
-        content: formattedContent
+        content: formattedContent,
       };
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : "Unknown error";
-      console.error(`${this.logPrefix} Error: ${errorMessage}`);
-      
+      const errorMessage =
+        error instanceof Error ? error.message : "Unknown error";
+      logger.error(`${this.logPrefix} Error: ${errorMessage}`);
+
       return {
         success: false,
         content: `Title: Error\nURL: ${url}\nContent:\n\n<error>Failed to retrieve web page content: ${errorMessage}</error>`,
-        error: errorMessage
+        error: errorMessage,
       };
     }
   }
 
   private async processContent(html: string, url: string): Promise<string> {
     let contentToProcess = html;
-    
+
     // Extract main content if needed
     if (this.options.extractContent) {
-      console.error(`${this.logPrefix} Extracting main content`);
+      logger.info(`${this.logPrefix} Extracting main content`);
       const dom = new JSDOM(html, { url });
       const reader = new Readability(dom.window.document);
       const article = reader.parse();
 
       if (!article) {
-        console.error(`${this.logPrefix} Could not extract main content, will use full HTML`);
+        logger.warn(
+          `${this.logPrefix} Could not extract main content, will use full HTML`
+        );
       } else {
         contentToProcess = article.content;
-        console.error(`${this.logPrefix} Successfully extracted main content, length: ${contentToProcess.length}`);
+        logger.info(
+          `${this.logPrefix} Successfully extracted main content, length: ${contentToProcess.length}`
+        );
       }
     }
 
     // Convert to markdown if needed
     let processedContent = contentToProcess;
     if (!this.options.returnHtml) {
-      console.error(`${this.logPrefix} Converting to Markdown`);
+      logger.info(`${this.logPrefix} Converting to Markdown`);
       const turndownService = new TurndownService();
       processedContent = turndownService.turndown(contentToProcess);
-      console.error(`${this.logPrefix} Successfully converted to Markdown, length: ${processedContent.length}`);
+      logger.info(
+        `${this.logPrefix} Successfully converted to Markdown, length: ${processedContent.length}`
+      );
     }
 
     // Truncate if needed
-    if (this.options.maxLength > 0 && processedContent.length > this.options.maxLength) {
-      console.error(`${this.logPrefix} Content exceeds maximum length, will truncate to ${this.options.maxLength} characters`);
+    if (
+      this.options.maxLength > 0 &&
+      processedContent.length > this.options.maxLength
+    ) {
+      logger.info(
+        `${this.logPrefix} Content exceeds maximum length, will truncate to ${this.options.maxLength} characters`
+      );
       processedContent = processedContent.substring(0, this.options.maxLength);
     }
 

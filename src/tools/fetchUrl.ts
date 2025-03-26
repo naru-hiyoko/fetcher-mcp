@@ -1,6 +1,7 @@
 import { chromium } from "playwright";
 import { WebContentProcessor } from "../services/webContentProcessor.js";
 import { FetchOptions } from "../types/index.js";
+import { logger } from "../utils/logger.js";
 
 // Parse command line arguments, check for debug flag
 const isDebugMode = process.argv.includes("--debug");
@@ -65,7 +66,7 @@ export const fetchUrlTool = {
       },
     },
     required: ["url"],
-  }
+  },
 };
 
 /**
@@ -74,30 +75,35 @@ export const fetchUrlTool = {
 export async function fetchUrl(args: any) {
   const url = String(args?.url || "");
   if (!url) {
-    console.error(`[Error] URL parameter missing`);
+    logger.error(`URL parameter missing`);
     throw new Error("URL parameter is required");
   }
 
   const options: FetchOptions = {
     timeout: Number(args?.timeout) || 30000,
-    waitUntil: String(args?.waitUntil || "load") as 'load' | 'domcontentloaded' | 'networkidle' | 'commit',
+    waitUntil: String(args?.waitUntil || "load") as
+      | "load"
+      | "domcontentloaded"
+      | "networkidle"
+      | "commit",
     extractContent: args?.extractContent !== false,
     maxLength: Number(args?.maxLength) || 0,
     returnHtml: args?.returnHtml === true,
     waitForNavigation: args?.waitForNavigation === true,
     navigationTimeout: Number(args?.navigationTimeout) || 10000,
     disableMedia: args?.disableMedia !== false,
-    debug: args?.debug
+    debug: args?.debug,
   };
 
   // 确定是否启用调试模式（优先使用参数指定的值，否则使用命令行标志）
-  const useDebugMode = options.debug !== undefined ? options.debug : isDebugMode;
-  
+  const useDebugMode =
+    options.debug !== undefined ? options.debug : isDebugMode;
+
   if (useDebugMode) {
-    console.log(`[Debug] Debug mode enabled for URL: ${url}`);
+    logger.debug(`Debug mode enabled for URL: ${url}`);
   }
 
-  const processor = new WebContentProcessor(options, '[FetchURL]');
+  const processor = new WebContentProcessor(options, "[FetchURL]");
   let browser = null;
   let page = null;
 
@@ -106,12 +112,16 @@ export async function fetchUrl(args: any) {
     const context = await browser.newContext({
       javaScriptEnabled: true,
       ignoreHTTPSErrors: true,
-      userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+      userAgent:
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
     });
 
-    await context.route('**/*', async (route) => {
+    await context.route("**/*", async (route) => {
       const resourceType = route.request().resourceType();
-      if (options.disableMedia && ['image', 'stylesheet', 'font', 'media'].includes(resourceType)) {
+      if (
+        options.disableMedia &&
+        ["image", "stylesheet", "font", "media"].includes(resourceType)
+      ) {
         await route.abort();
       } else {
         await route.continue();
@@ -119,18 +129,24 @@ export async function fetchUrl(args: any) {
     });
 
     page = await context.newPage();
-    
+
     const result = await processor.processPageContent(page, url);
-    
+
     return {
-      content: [{ type: "text", text: result.content }]
+      content: [{ type: "text", text: result.content }],
     };
   } finally {
     if (!useDebugMode) {
-      if (page) await page.close().catch(e => console.error(`[Error] Failed to close page: ${e.message}`));
-      if (browser) await browser.close().catch(e => console.error(`[Error] Failed to close browser: ${e.message}`));
+      if (page)
+        await page
+          .close()
+          .catch((e) => logger.error(`Failed to close page: ${e.message}`));
+      if (browser)
+        await browser
+          .close()
+          .catch((e) => logger.error(`Failed to close browser: ${e.message}`));
     } else {
-      console.log(`[Debug] Browser and page kept open for debugging. URL: ${url}`);
+      logger.debug(`Browser and page kept open for debugging. URL: ${url}`);
     }
   }
 }

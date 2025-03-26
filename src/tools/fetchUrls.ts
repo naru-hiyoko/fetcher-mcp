@@ -1,6 +1,7 @@
 import { chromium } from "playwright";
 import { WebContentProcessor } from "../services/webContentProcessor.js";
 import { FetchOptions, FetchResult } from "../types/index.js";
+import { logger } from "../utils/logger.js";
 
 // Parse command line arguments, check for debug flag
 const isDebugMode = process.argv.includes("--debug");
@@ -68,7 +69,7 @@ export const fetchUrlsTool = {
       },
     },
     required: ["urls"],
-  }
+  },
 };
 
 /**
@@ -82,21 +83,26 @@ export async function fetchUrls(args: any) {
 
   const options: FetchOptions = {
     timeout: Number(args?.timeout) || 30000,
-    waitUntil: String(args?.waitUntil || "load") as 'load' | 'domcontentloaded' | 'networkidle' | 'commit',
+    waitUntil: String(args?.waitUntil || "load") as
+      | "load"
+      | "domcontentloaded"
+      | "networkidle"
+      | "commit",
     extractContent: args?.extractContent !== false,
     maxLength: Number(args?.maxLength) || 0,
     returnHtml: args?.returnHtml === true,
     waitForNavigation: args?.waitForNavigation === true,
     navigationTimeout: Number(args?.navigationTimeout) || 10000,
     disableMedia: args?.disableMedia !== false,
-    debug: args?.debug
+    debug: args?.debug,
   };
 
   // 确定是否启用调试模式（优先使用参数指定的值，否则使用命令行标志）
-  const useDebugMode = options.debug !== undefined ? options.debug : isDebugMode;
-  
+  const useDebugMode =
+    options.debug !== undefined ? options.debug : isDebugMode;
+
   if (useDebugMode) {
-    console.log(`[Debug] Debug mode enabled for URLs: ${urls.join(', ')}`);
+    logger.debug(`Debug mode enabled for URLs: ${urls.join(", ")}`);
   }
 
   let browser = null;
@@ -105,20 +111,24 @@ export async function fetchUrls(args: any) {
     const context = await browser.newContext({
       javaScriptEnabled: true,
       ignoreHTTPSErrors: true,
-      userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+      userAgent:
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
     });
 
-    await context.route('**/*', async (route) => {
+    await context.route("**/*", async (route) => {
       const resourceType = route.request().resourceType();
-      if (options.disableMedia && ['image', 'stylesheet', 'font', 'media'].includes(resourceType)) {
+      if (
+        options.disableMedia &&
+        ["image", "stylesheet", "font", "media"].includes(resourceType)
+      ) {
         await route.abort();
       } else {
         await route.continue();
       }
     });
 
-    const processor = new WebContentProcessor(options, '[FetchURLs]');
-    
+    const processor = new WebContentProcessor(options, "[FetchURLs]");
+
     const results = await Promise.all(
       urls.map(async (url, index) => {
         const page = await context.newPage();
@@ -127,9 +137,11 @@ export async function fetchUrls(args: any) {
           return { index, ...result } as FetchResult;
         } finally {
           if (!useDebugMode) {
-            await page.close().catch(e => console.error(`[Error] Failed to close page: ${e.message}`));
+            await page
+              .close()
+              .catch((e) => logger.error(`Failed to close page: ${e.message}`));
           } else {
-            console.log(`[Debug] Page kept open for debugging. URL: ${url}`);
+            logger.debug(`Page kept open for debugging. URL: ${url}`);
           }
         }
       })
@@ -137,17 +149,23 @@ export async function fetchUrls(args: any) {
 
     results.sort((a, b) => (a.index || 0) - (b.index || 0));
     const combinedResults = results
-      .map((result, i) => `[webpage ${i + 1} begin]\n${result.content}\n[webpage ${i + 1} end]`)
-      .join('\n\n');
+      .map(
+        (result, i) =>
+          `[webpage ${i + 1} begin]\n${result.content}\n[webpage ${i + 1} end]`
+      )
+      .join("\n\n");
 
     return {
-      content: [{ type: "text", text: combinedResults }]
+      content: [{ type: "text", text: combinedResults }],
     };
   } finally {
     if (!useDebugMode) {
-      if (browser) await browser.close().catch(e => console.error(`[Error] Failed to close browser: ${e.message}`));
+      if (browser)
+        await browser
+          .close()
+          .catch((e) => logger.error(`Failed to close browser: ${e.message}`));
     } else {
-      console.log(`[Debug] Browser kept open for debugging. URLs: ${urls.join(', ')}`);
+      logger.debug(`Browser kept open for debugging. URLs: ${urls.join(", ")}`);
     }
   }
 }
