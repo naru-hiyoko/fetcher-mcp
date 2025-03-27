@@ -180,6 +180,10 @@ You can also enable visible browser mode for debugging:
 node build/index.js --debug
 ```
 
+## Related Projects
+
+- [g-search-mcp](https://github.com/jae-jae/g-search-mcp): A powerful MCP server for Google search that enables parallel searching with multiple keywords simultaneously. Perfect for batch search operations and data collection.
+
 ## License
 
 Licensed under the [MIT License](https://choosealicense.com/licenses/mit/)
