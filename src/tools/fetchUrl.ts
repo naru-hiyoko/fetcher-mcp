@@ -1,5 +1,6 @@
-import { chromium } from "playwright";
+import { Browser, Page } from "playwright";
 import { WebContentProcessor } from "../services/webContentProcessor.js";
+import { BrowserService } from "../services/browserService.js";
 import { FetchOptions } from "../types/index.js";
 import { logger } from "../utils/logger.js";
 
@@ -95,57 +96,39 @@ export async function fetchUrl(args: any) {
     debug: args?.debug,
   };
 
-  // 确定是否启用调试模式（优先使用参数指定的值，否则使用命令行标志）
-  const useDebugMode =
-    options.debug !== undefined ? options.debug : isDebugMode;
+  // Create browser service
+  const browserService = new BrowserService(options);
+  
+  // Create content processor
+  const processor = new WebContentProcessor(options, "[FetchURL]");
+  let browser: Browser | null = null;
+  let page: Page | null = null;
 
-  if (useDebugMode) {
+  if (browserService.isInDebugMode()) {
     logger.debug(`Debug mode enabled for URL: ${url}`);
   }
 
-  const processor = new WebContentProcessor(options, "[FetchURL]");
-  let browser = null;
-  let page = null;
-
   try {
-    browser = await chromium.launch({ headless: !useDebugMode });
-    const context = await browser.newContext({
-      javaScriptEnabled: true,
-      ignoreHTTPSErrors: true,
-      userAgent:
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
-    });
+    // Create a stealth browser with anti-detection measures
+    browser = await browserService.createBrowser();
+    
+    // Create a stealth browser context
+    const { context, viewport } = await browserService.createContext(browser);
 
-    await context.route("**/*", async (route) => {
-      const resourceType = route.request().resourceType();
-      if (
-        options.disableMedia &&
-        ["image", "stylesheet", "font", "media"].includes(resourceType)
-      ) {
-        await route.abort();
-      } else {
-        await route.continue();
-      }
-    });
+    // Create a new page with human-like behavior
+    page = await browserService.createPage(context, viewport);
 
-    page = await context.newPage();
-
+    // Process page content
     const result = await processor.processPageContent(page, url);
 
     return {
       content: [{ type: "text", text: result.content }],
     };
   } finally {
-    if (!useDebugMode) {
-      if (page)
-        await page
-          .close()
-          .catch((e) => logger.error(`Failed to close page: ${e.message}`));
-      if (browser)
-        await browser
-          .close()
-          .catch((e) => logger.error(`Failed to close browser: ${e.message}`));
-    } else {
+    // Clean up resources
+    await browserService.cleanup(browser, page);
+    
+    if (browserService.isInDebugMode()) {
       logger.debug(`Browser and page kept open for debugging. URL: ${url}`);
     }
   }
