@@ -30,6 +30,12 @@ Run directly with npx:
 npx -y fetcher-mcp
 ```
 
+First time setup - install the required browser:
+
+```bash
+npx playwright install chromium
+```
+
 ### Debug Mode
 
 Run with the `--debug` option to show the browser window for debugging:
