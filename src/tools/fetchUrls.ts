@@ -4,9 +4,6 @@ import { BrowserService } from "../services/browserService.js";
 import { FetchOptions, FetchResult } from "../types/index.js";
 import { logger } from "../utils/logger.js";
 
-// Parse command line arguments, check for debug flag
-const isDebugMode = process.argv.includes("--debug");
-
 /**
  * Tool definition for fetch_urls
  */
