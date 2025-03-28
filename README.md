@@ -30,7 +30,7 @@ Run directly with npx:
 npx -y fetcher-mcp
 ```
 
-First time setup - install the required browser:
+First time setup - install the required browser by running the following command in your terminal:
 
 ```bash
 npx playwright install chromium
