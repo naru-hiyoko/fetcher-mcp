@@ -192,50 +192,10 @@ export class BrowserService {
   }
 
   /**
-   * Apply human-like behavior simulation to a page
-   */
-  public simulateHumanBehavior(page: Page, viewport: {width: number, height: number}): void {
-    page.on('load', async () => {
-      try {
-        // Random delay simulating human reading habits
-        await page.waitForTimeout(1000 + Math.random() * 2000);
-        
-        // Get page height
-        const pageHeight = await page.evaluate(() => document.body.scrollHeight);
-        
-        // Gradually scroll through the page
-        for (let i = 0; i < pageHeight; i += Math.floor(100 + Math.random() * 300)) {
-          await page.evaluate((scrollPos: number) => {
-            window.scrollTo(0, scrollPos);
-          }, i);
-          
-          // Random pause
-          await page.waitForTimeout(200 + Math.random() * 500);
-          
-          // Random mouse movement
-          if (Math.random() > 0.7) {
-            const randomX = Math.floor(Math.random() * viewport.width);
-            const randomY = Math.floor(Math.random() * viewport.height);
-            await page.mouse.move(randomX, randomY);
-          }
-        }
-        
-        // Scroll back to top
-        await page.evaluate(() => {
-          window.scrollTo(0, 0);
-        });
-      } catch (e) {
-        logger.warn(`Error in human-like behavior simulation: ${e}`);
-      }
-    });
-  }
-
-  /**
-   * Create a new page with human-like behavior
+   * Create a new page
    */
   public async createPage(context: BrowserContext, viewport: {width: number, height: number}): Promise<Page> {
     const page = await context.newPage();
-    this.simulateHumanBehavior(page, viewport);
     return page;
   }
 
