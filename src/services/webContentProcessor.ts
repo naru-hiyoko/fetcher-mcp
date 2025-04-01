@@ -20,10 +20,41 @@ export class WebContentProcessor {
 
       // Navigate to URL
       logger.info(`${this.logPrefix} Navigating to URL: ${url}`);
-      await page.goto(url, {
-        timeout: this.options.timeout,
-        waitUntil: this.options.waitUntil,
-      });
+      try {
+        await page.goto(url, {
+          timeout: this.options.timeout,
+          waitUntil: this.options.waitUntil,
+        });
+      } catch (gotoError: any) {
+        // If it's a timeout error, try to retrieve page content
+        if (gotoError.message.includes("Timeout") || gotoError.message.includes("timeout")) {
+          logger.warn(`${this.logPrefix} Navigation timeout: ${gotoError.message}. Attempting to retrieve content anyway...`);
+          
+          // Try to retrieve page content
+          try {
+            // Directly get page information without waiting for page stability
+            const { pageTitle, html } = await this.safelyGetPageInfo(page, url);
+            
+            // If content is retrieved, process and return it
+            if (html && html.trim().length > 0) {
+              logger.info(`${this.logPrefix} Successfully retrieved content despite timeout, length: ${html.length}`);
+              
+              const processedContent = await this.processContent(html, url);
+              const formattedContent = `Title: ${pageTitle}\nURL: ${url}\nContent:\n\n${processedContent}`;
+              
+              return {
+                success: true,
+                content: formattedContent,
+              };
+            }
+          } catch (retrieveError: any) {
+            logger.error(`${this.logPrefix} Failed to retrieve content after timeout: ${retrieveError.message}`);
+          }
+        }
+        
+        // If unable to retrieve content or it's not a timeout error, continue to throw the original error
+        throw gotoError;
+      }
 
       // Handle possible anti-bot verification and redirection
       if (this.options.waitForNavigation) {
