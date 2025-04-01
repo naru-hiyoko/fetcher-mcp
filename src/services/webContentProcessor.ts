@@ -66,12 +66,11 @@ export class WebContentProcessor {
         }
       }
 
-      // Get page title
-      const pageTitle = await page.title();
-      logger.info(`${this.logPrefix} Page title: ${pageTitle}`);
-
-      // Get HTML content
-      const html = await page.content();
+      // Wait for the page to stabilize before getting content
+      await this.ensurePageStability(page);
+      
+      // Safely retrieve page title and content
+      const { pageTitle, html } = await this.safelyGetPageInfo(page, url);
 
       if (!html) {
         logger.warn(`${this.logPrefix} Browser returned empty content`);
@@ -106,6 +105,72 @@ export class WebContentProcessor {
         error: errorMessage,
       };
     }
+  }
+
+  // Added method: Ensure page stability
+  private async ensurePageStability(page: any): Promise<void> {
+    try {
+      // Check if there are ongoing network requests or navigation
+      await page.waitForFunction(
+        () => {
+          return window.document.readyState === 'complete';
+        }, 
+        { timeout: this.options.timeout }
+      );
+      
+      // Wait an extra short time to ensure page stability
+      await page.waitForTimeout(500);
+      
+      logger.info(`${this.logPrefix} Page has stabilized`);
+    } catch (error) {
+      logger.warn(`${this.logPrefix} Error ensuring page stability: ${error instanceof Error ? error.message : String(error)}`);
+    }
+  }
+
+  // Added method: Safely get page information (title and HTML content)
+  private async safelyGetPageInfo(page: any, url: string, retries = 3): Promise<{pageTitle: string, html: string}> {
+    let pageTitle = "Untitled";
+    let html = "";
+    let attempt = 0;
+    
+    while (attempt < retries) {
+      try {
+        attempt++;
+        
+        // Get page title
+        pageTitle = await page.title();
+        logger.info(`${this.logPrefix} Page title: ${pageTitle}`);
+        
+        // Get HTML content
+        html = await page.content();
+        
+        // If successfully retrieved, exit the loop
+        return { pageTitle, html };
+        
+      } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        
+        // Check if it's an "execution context was destroyed" error
+        if (errorMessage.includes("Execution context was destroyed") && attempt < retries) {
+          logger.warn(`${this.logPrefix} Context destroyed, waiting for navigation to complete (attempt ${attempt}/${retries})...`);
+          
+          // Wait for page to stabilize
+          await new Promise(resolve => setTimeout(resolve, 1000));
+          await this.ensurePageStability(page);
+          
+          // If it's the last retry attempt, log the error but continue
+          if (attempt === retries) {
+            logger.error(`${this.logPrefix} Failed to get page info after ${retries} attempts`);
+          }
+        } else {
+          // Other errors, log and rethrow
+          logger.error(`${this.logPrefix} Error getting page info: ${errorMessage}`);
+          throw error;
+        }
+      }
+    }
+    
+    return { pageTitle, html };
   }
 
   private async processContent(html: string, url: string): Promise<string> {
