@@ -16,7 +16,6 @@
     "prepare": "npm run build",
     "watch": "tsc --watch",
     "inspector": "npm run build && npx @modelcontextprotocol/inspector build/index.js --debug",
-    "inspector-sse": "npm run build && npx @modelcontextprotocol/inspector build/index.js --debug --log --transport=http",
     "install-browser": "npx playwright install chromium"
   },
   "dependencies": {
