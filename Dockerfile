@@ -3,9 +3,12 @@ FROM node:20-slim AS builder
 
 WORKDIR /app
 
+RUN npm install -g pnpm --no-frozen-lockfile
+
 # Copy dependency files first to leverage caching
 COPY package*.json pnpm-lock.yaml ./
-RUN npm install -g pnpm && pnpm install
+
+RUN pnpm install --frozen-lockfile
 
 # Copy source code and configuration files
 COPY tsconfig.json ./
