@@ -3,19 +3,17 @@ FROM node:20-slim AS builder
 
 WORKDIR /app
 
-RUN npm install -g pnpm --no-frozen-lockfile
-
 # Copy dependency files first to leverage caching
-COPY package*.json pnpm-lock.yaml ./
+COPY package*.json ./
 
-RUN pnpm install --frozen-lockfile
+RUN npm ci
 
 # Copy source code and configuration files
 COPY tsconfig.json ./
 COPY src/ ./src/
 
 # Build the project
-RUN pnpm run build
+RUN npm run build
 
 # Runtime stage
 FROM node:20-slim AS runner
@@ -35,8 +33,8 @@ RUN npx playwright install chromium
 WORKDIR /app
 
 # Copy only production dependencies
-COPY package*.json pnpm-lock.yaml ./
-RUN npm install -g pnpm && pnpm install --prod
+COPY package*.json ./
+RUN npm ci --only=production
 
 # Copy build artifacts from the builder stage
 COPY --from=builder /app/build ./build
