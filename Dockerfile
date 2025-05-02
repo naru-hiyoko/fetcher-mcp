@@ -1,5 +1,5 @@
 # Build stage
-FROM node:20-slim AS builder
+FROM node:22-slim AS builder
 
 WORKDIR /app
 
@@ -16,7 +16,7 @@ COPY src/ ./src/
 RUN npm run build
 
 # Runtime stage
-FROM node:20-slim AS runner
+FROM node:22-slim AS runner
 
 # Install system dependencies required for runtime
 RUN apt-get update && apt-get install -y \
@@ -25,9 +25,6 @@ RUN apt-get update && apt-get install -y \
     ca-certificates \
     && rm -rf /var/lib/apt/lists/*
 
-# Playwright configuration
-# ENV PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1
-
 WORKDIR /app
 
 # Copy only production dependencies
@@ -35,7 +32,7 @@ COPY --from=builder /app/build ./build
 COPY package*.json ./
 RUN npm ci --only=production
 
-# Install Playwright 浏览器 (ensure headless shell is installed)
+# Install Playwright browsers (ensure headless shell is installed)
 RUN npx playwright install --with-deps chromium
 
 # Expose port
