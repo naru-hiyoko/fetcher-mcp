@@ -26,18 +26,17 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 # Playwright configuration
-ENV PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1
-RUN npx playwright install-deps chromium
-RUN npx playwright install chromium
+# ENV PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1
 
 WORKDIR /app
 
 # Copy only production dependencies
+COPY --from=builder /app/build ./build
 COPY package*.json ./
 RUN npm ci --only=production
 
-# Copy build artifacts from the builder stage
-COPY --from=builder /app/build ./build
+# Install Playwright 浏览器 (ensure headless shell is installed)
+RUN npx playwright install --with-deps chromium
 
 # Expose port
 EXPOSE 3000
