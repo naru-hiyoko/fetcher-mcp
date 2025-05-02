@@ -39,4 +39,4 @@ RUN npx playwright install --with-deps chromium
 EXPOSE 3000
 
 # Startup command
-CMD ["node", "build/index.js", "--transport=http", "--host=0.0.0.0", "--port=3000"] 
+CMD ["node", "build/index.js", "--log", "--transport=http", "--host=0.0.0.0", "--port=3000"] 
