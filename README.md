@@ -36,6 +36,21 @@ First time setup - install the required browser by running the following command
 npx playwright install chromium
 ```
 
+### HTTP and SSE Transport
+
+Use the `--transport=http` parameter to start both Streamable HTTP endpoint and SSE endpoint services simultaneously:
+
+```bash
+npx -y fetcher-mcp --log --transport=http --host=0.0.0.0 --port=3000
+```
+
+After startup, the server provides the following endpoints:
+
+- `/mcp` - Streamable HTTP endpoint (modern MCP protocol)
+- `/sse` - SSE endpoint (legacy MCP protocol)
+
+Clients can choose which method to connect based on their needs.
+
 ### Debug Mode
 
 Run with the `--debug` option to show the browser window for debugging:
@@ -61,6 +76,49 @@ On Windows: `%APPDATA%/Claude/claude_desktop_config.json`
     }
   }
 }
+```
+
+## Docker Deployment
+
+### Running with Docker
+
+```bash
+docker run -p 3000:3000 ghcr.io/jae-jae/fetcher-mcp:latest
+```
+
+### Deploying with Docker Compose
+
+Create a `docker-compose.yml` file:
+
+```yaml
+version: "3.8"
+
+services:
+  fetcher-mcp:
+    image: ghcr.io/jae-jae/fetcher-mcp:latest
+    container_name: fetcher-mcp
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+    # Using host network mode on Linux hosts can improve browser access efficiency
+    # network_mode: "host"
+    volumes:
+      # For Playwright, may need to share certain system paths
+      - /tmp:/tmp
+    # Health check
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:3000"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+```
+
+Then run:
+
+```bash
+docker-compose up -d
 ```
 
 ## Features
