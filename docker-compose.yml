@@ -2,9 +2,7 @@ version: "3.8"
 
 services:
   fetcher-mcp:
-    build:
-      context: .
-      dockerfile: Dockerfile
+    image: ghcr.io/jae-jae/fetcher-mcp:latest
     container_name: fetcher-mcp
     restart: unless-stopped
     ports:
