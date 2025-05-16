@@ -15,7 +15,7 @@ export const fetchUrlTool = {
     properties: {
       url: {
         type: "string",
-        description: "URL to fetch",
+        description: "URL to fetch. Make sure to include the schema (http:// or https:// if not defined, preferring https for most cases)",
       },
       timeout: {
         type: "number",
