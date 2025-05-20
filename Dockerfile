@@ -1,5 +1,5 @@
 # Build stage
-FROM node:22-slim AS builder
+FROM --platform=$BUILDPLATFORM node:22-slim AS builder
 
 WORKDIR /app
 
@@ -16,7 +16,7 @@ COPY src/ ./src/
 RUN npm run build
 
 # Runtime stage
-FROM node:22-slim AS runner
+FROM --platform=$TARGETPLATFORM node:22-slim AS runner
 
 # Install system dependencies required for runtime
 RUN apt-get update && apt-get install -y \
