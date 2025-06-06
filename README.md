@@ -251,3 +251,5 @@ node build/index.js --debug
 ## License
 
 Licensed under the [MIT License](https://choosealicense.com/licenses/mit/)
+
+[![Powered by DartNode](https://dartnode.com/branding/DN-Open-Source-sm.png)](https://dartnode.com "Powered by DartNode - Free VPS for Open Source")
