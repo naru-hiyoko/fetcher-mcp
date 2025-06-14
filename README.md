@@ -1,7 +1,3 @@
-> 🌟 **Recommended**: [OllaMan](https://ollaman.com/) - Powerful Ollama AI Model Manager.
-
----
-
 <div align="center">
   <img src="https://raw.githubusercontent.com/jae-jae/fetcher-mcp/refs/heads/main/icon.svg" width="100" height="100" alt="Fetcher MCP Icon" />
 </div>
@@ -9,6 +5,8 @@
 # Fetcher MCP
 
 MCP server for fetch web page content using Playwright headless browser.
+
+> 🌟 **Recommended**: [OllaMan](https://ollaman.com/) - Powerful Ollama AI Model Manager.
 
 ## Advantages
 
