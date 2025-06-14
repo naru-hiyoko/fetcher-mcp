@@ -1,3 +1,7 @@
+> 🌟 **Recommended**: [OllaMan](https://ollaman.com/) - Powerful Ollama AI Model Manager.
+
+---
+
 <div align="center">
   <img src="https://raw.githubusercontent.com/jae-jae/fetcher-mcp/refs/heads/main/icon.svg" width="100" height="100" alt="Fetcher MCP Icon" />
 </div>
@@ -124,6 +128,7 @@ docker-compose up -d
 ## Features
 
 - `fetch_url` - Retrieve web page content from a specified URL
+
   - Uses Playwright headless browser to parse JavaScript
   - Supports intelligent extraction of main content and conversion to Markdown
   - Supports the following parameters:
@@ -150,10 +155,13 @@ docker-compose up -d
 ### Handling Special Website Scenarios
 
 #### Dealing with Anti-Crawler Mechanisms
+
 - **Wait for Complete Loading**: For websites using CAPTCHA, redirects, or other verification mechanisms, include in your prompt:
+
   ```
   Please wait for the page to fully load
   ```
+
   This will use the `waitForNavigation: true` parameter.
 
 - **Increase Timeout Duration**: For websites that load slowly:
@@ -163,16 +171,21 @@ docker-compose up -d
   This adjusts both `timeout` and `navigationTimeout` parameters accordingly.
 
 #### Content Retrieval Adjustments
+
 - **Preserve Original HTML Structure**: When content extraction might fail:
+
   ```
   Please preserve the original HTML content
   ```
+
   Sets `extractContent: false` and `returnHtml: true`.
 
 - **Fetch Complete Page Content**: When extracted content is too limited:
+
   ```
   Please fetch the complete webpage content instead of just the main content
   ```
+
   Sets `extractContent: false`.
 
 - **Return Content as HTML**: When HTML format is needed instead of default Markdown:
@@ -184,6 +197,7 @@ docker-compose up -d
 ### Debugging and Authentication
 
 #### Enabling Debug Mode
+
 - **Dynamic Debug Activation**: To display the browser window during a specific fetch operation:
   ```
   Please enable debug mode for this fetch operation
@@ -191,13 +205,17 @@ docker-compose up -d
   This sets `debug: true` even if the server was started without the `--debug` flag.
 
 #### Using Custom Cookies for Authentication
+
 - **Manual Login**: To login using your own credentials:
+
   ```
   Please run in debug mode so I can manually log in to the website
   ```
+
   Sets `debug: true` or uses the `--debug` flag, keeping the browser window open for manual login.
 
 - **Interacting with Debug Browser**: When debug mode is enabled:
+
   1. The browser window remains open
   2. You can manually log into the website using your credentials
   3. After login is complete, content will be fetched with your authenticated session
