@@ -2,6 +2,16 @@
   <img src="https://raw.githubusercontent.com/jae-jae/fetcher-mcp/refs/heads/main/icon.svg" width="100" height="100" alt="Fetcher MCP Icon" />
 </div>
 
+
+[中文](https://www.readme-i18n.com/jae-jae/fetcher-mcp?lang=zh) |
+[Deutsch](https://www.readme-i18n.com/jae-jae/fetcher-mcp?lang=de) | 
+[Español](https://www.readme-i18n.com/jae-jae/fetcher-mcp?lang=es) | 
+[français](https://www.readme-i18n.com/jae-jae/fetcher-mcp?lang=fr) | 
+[日本語](https://www.readme-i18n.com/jae-jae/fetcher-mcp?lang=ja) | 
+[한국어](https://www.readme-i18n.com/jae-jae/fetcher-mcp?lang=ko) | 
+[Português](https://www.readme-i18n.com/jae-jae/fetcher-mcp?lang=pt) | 
+[Русский](https://www.readme-i18n.com/jae-jae/fetcher-mcp?lang=ru) 
+
 # Fetcher MCP
 
 MCP server for fetch web page content using Playwright headless browser.
