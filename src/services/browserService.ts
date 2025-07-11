@@ -200,6 +200,17 @@ export class BrowserService {
   }
 
   /**
+   * Cloase a page
+   */
+  public async closePage(page: Page | null): Promise<void> {
+    if (page) {
+      await page
+        .close()
+        .catch((e) =>  logger.error(`Failed to close page: ${e.message}`));
+    }
+  }
+
+  /**
    * Clean up resources
    */
   public async cleanup(browser: Browser | null, page: Page | null): Promise<void> {

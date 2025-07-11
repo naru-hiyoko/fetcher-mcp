@@ -1,4 +1,4 @@
-import { Browser, Page } from "playwright";
+import { Browser, BrowserContext, Page } from "playwright";
 import { WebContentProcessor } from "../services/webContentProcessor.js";
 import { BrowserService } from "../services/browserService.js";
 import { FetchOptions } from "../types/index.js";
@@ -70,6 +70,11 @@ export const fetchUrlTool = {
 /**
  * Implementation of the fetch_url tool
  */
+
+let browser: Browser | null = null;
+let context: BrowserContext | null = null;
+let viewport: { width: number; height: number } | null = null;
+
 export async function fetchUrl(args: any) {
   const url = String(args?.url || "");
   if (!url) {
@@ -95,10 +100,9 @@ export async function fetchUrl(args: any) {
 
   // Create browser service
   const browserService = new BrowserService(options);
-  
+
   // Create content processor
   const processor = new WebContentProcessor(options, "[FetchURL]");
-  let browser: Browser | null = null;
   let page: Page | null = null;
 
   if (browserService.isInDebugMode()) {
@@ -107,13 +111,17 @@ export async function fetchUrl(args: any) {
 
   try {
     // Create a stealth browser with anti-detection measures
-    browser = await browserService.createBrowser();
-    
+    browser = browser ?? await browserService.createBrowser();
+
     // Create a stealth browser context
-    const { context, viewport } = await browserService.createContext(browser);
+    if (!context || !viewport) {
+      const {context: new_context, viewport: new_viewport} = await browserService.createContext(browser);
+      context = new_context;
+      viewport = new_viewport;
+    }
 
     // Create a new page with human-like behavior
-    page = await browserService.createPage(context, viewport);
+    page = await browserService.createPage(context!, viewport!);
 
     // Process page content
     const result = await processor.processPageContent(page, url);
