@@ -11,8 +11,9 @@ export class BrowserService {
   private browser: Browser | null = null;
   private context: BrowserContext | null = null;
   private viewport: {width: number, height: number} | null = null;
+  private static instance: BrowserService | null = null;
 
-  constructor(options: FetchOptions) {
+  private constructor(options: FetchOptions) {
     this.options = options;
     this.isDebugMode = process.argv.includes("--debug");
 
@@ -20,6 +21,15 @@ export class BrowserService {
     if (options.debug !== undefined) {
       this.isDebugMode = options.debug;
     }
+
+    BrowserService.instance = this;
+  }
+
+  public static createOrGetInstance(options: FetchOptions): BrowserService {
+    if (!BrowserService.instance) {
+      BrowserService.instance = new BrowserService(options);
+    }
+    return BrowserService.instance;
   }
 
   /**

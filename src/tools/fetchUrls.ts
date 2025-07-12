@@ -78,8 +78,6 @@ export const fetchUrlsTool = {
 /**
  * Implementation of the fetch_urls tool
  */
-let browserService: BrowserService | null = null;
-
 export async function fetchUrls(args: any) {
   const urls = (args?.urls as string[]) || [];
   if (!urls || !Array.isArray(urls) || urls.length === 0) {
@@ -104,7 +102,7 @@ export async function fetchUrls(args: any) {
   };
 
   // Create browser service
-  browserService = browserService ?? new BrowserService(options);
+  const browserService = BrowserService.createOrGetInstance(options);
 
   if (browserService.isInDebugMode()) {
     logger.debug(`Debug mode enabled for URLs: ${urls.join(", ")}`);

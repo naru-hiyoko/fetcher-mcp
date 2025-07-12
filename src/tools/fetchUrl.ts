@@ -75,9 +75,6 @@ export const fetchUrlTool = {
 /**
  * Implementation of the fetch_url tool
  */
-
-let browserService: BrowserService | null = null;
-
 export async function fetchUrl(args: any) {
   const url = String(args?.url || "");
   if (!url) {
@@ -103,7 +100,7 @@ export async function fetchUrl(args: any) {
   };
 
   // Create browser service
-  browserService = browserService ?? new BrowserService(options);
+  const browserService = BrowserService.createOrGetInstance(options);
 
   // Create content processor
   const processor = new WebContentProcessor(options, "[FetchURL]");
