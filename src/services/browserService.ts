@@ -32,6 +32,10 @@ export class BrowserService {
     return BrowserService.instance;
   }
 
+  public static getInstance(): BrowserService | null {
+    return BrowserService.instance;
+  }
+
   /**
    * Get whether debug mode is enabled
    */
@@ -162,6 +166,10 @@ export class BrowserService {
     });
   }
 
+  public async getBrowser(): Promise<Browser | null> {
+    return this.browser;
+  }
+
   /**
    * Get or create a browser instance
    */
@@ -248,18 +256,12 @@ export class BrowserService {
   /**
    * Clean up resources
    */
-  public async cleanup(browser: Browser | null, page: Page | null): Promise<void> {
-    if (!this.isDebugMode) {
-      if (page) {
-        await page
-          .close()
-          .catch((e) => logger.error(`Failed to close page: ${e.message}`));
-      }
-      if (browser) {
-        await browser
-          .close()
-          .catch((e) => logger.error(`Failed to close browser: ${e.message}`));
-      }
+  public async cleanup(): Promise<void> {
+    if (this.browser) {
+      await this.browser.close().catch((e) => logger.error(`Failed to close browser: ${e.message}`));
+      this.browser = null;
     }
+    BrowserService.instance = null;
+    return;
   }
 }
