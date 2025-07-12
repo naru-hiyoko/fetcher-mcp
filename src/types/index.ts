@@ -8,8 +8,9 @@ export interface FetchOptions {
     navigationTimeout: number;
     disableMedia: boolean;
     debug?: boolean;
+    closePage?: boolean;
   }
-  
+
   export interface FetchResult {
     success: boolean;
     content: string;
