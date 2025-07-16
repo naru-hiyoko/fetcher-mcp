@@ -1,4 +1,4 @@
-import { Browser, Page } from "playwright";
+import { Browser, BrowserContext, Page } from "playwright";
 import { WebContentProcessor } from "../services/webContentProcessor.js";
 import { BrowserService } from "../services/browserService.js";
 import { FetchOptions, FetchResult } from "../types/index.js";
@@ -65,6 +65,11 @@ export const fetchUrlsTool = {
         description:
           "Whether to enable debug mode (showing browser window), overrides the --debug command line flag if specified",
       },
+      closePage: {
+        type: "boolean",
+        description:
+          "Whether to close the page after fetching, default is true. Set to false to keep the page open for login",
+      },
     },
     required: ["urls"],
   },
@@ -93,35 +98,35 @@ export async function fetchUrls(args: any) {
     navigationTimeout: Number(args?.navigationTimeout) || 10000,
     disableMedia: args?.disableMedia !== false,
     debug: args?.debug,
+    closePage: args?.closePage !== undefined ? args.closePage : true,
   };
 
   // Create browser service
-  const browserService = new BrowserService(options);
+  const browserService = BrowserService.createOrGetInstance(options);
 
   if (browserService.isInDebugMode()) {
     logger.debug(`Debug mode enabled for URLs: ${urls.join(", ")}`);
   }
 
-  let browser: Browser | null = null;
   try {
     // Create a stealth browser with anti-detection measures
-    browser = await browserService.createBrowser();
-    
+    const browser = await browserService.getOrCreateBrowser();
+
     // Create a stealth browser context
-    const { context, viewport } = await browserService.createContext(browser);
+    const { context, viewport } = await browserService.getOrCreateContext(browser);
 
     const processor = new WebContentProcessor(options, "[FetchURLs]");
 
     const results = await Promise.all(
       urls.map(async (url, index) => {
         // Create a new page with human-like behavior
-        const page = await browserService.createPage(context, viewport);
-        
+        const page = await browserService!.createPage(context, viewport);
+
         try {
           const result = await processor.processPageContent(page, url);
           return { index, ...result } as FetchResult;
         } finally {
-          if (!browserService.isInDebugMode()) {
+          if (options.closePage) {
             await page
               .close()
               .catch((e) => logger.error(`Failed to close page: ${e.message}`));
@@ -144,14 +149,6 @@ export async function fetchUrls(args: any) {
       content: [{ type: "text", text: combinedResults }],
     };
   } finally {
-    // Clean up browser resources
-    if (!browserService.isInDebugMode()) {
-      if (browser)
-        await browser
-          .close()
-          .catch((e) => logger.error(`Failed to close browser: ${e.message}`));
-    } else {
-      logger.debug(`Browser kept open for debugging. URLs: ${urls.join(", ")}`);
-    }
+    // Do nothing.
   }
 }

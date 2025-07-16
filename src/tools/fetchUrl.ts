@@ -1,4 +1,4 @@
-import { Browser, Page } from "playwright";
+import { Browser, BrowserContext, Page } from "playwright";
 import { WebContentProcessor } from "../services/webContentProcessor.js";
 import { BrowserService } from "../services/browserService.js";
 import { FetchOptions } from "../types/index.js";
@@ -62,6 +62,11 @@ export const fetchUrlTool = {
         description:
           "Whether to enable debug mode (showing browser window), overrides the --debug command line flag if specified",
       },
+      closePage: {
+        type: "boolean",
+        description:
+          "Whether to close the page after fetching, default is true. Set to false to keep the page open for login",
+      },
     },
     required: ["url"],
   },
@@ -91,26 +96,28 @@ export async function fetchUrl(args: any) {
     navigationTimeout: Number(args?.navigationTimeout) || 10000,
     disableMedia: args?.disableMedia !== false,
     debug: args?.debug,
+    closePage: args?.closePage !== undefined ? args.closePage : true,
   };
 
   // Create browser service
-  const browserService = new BrowserService(options);
-  
+  const browserService = BrowserService.createOrGetInstance(options);
+
   // Create content processor
   const processor = new WebContentProcessor(options, "[FetchURL]");
-  let browser: Browser | null = null;
   let page: Page | null = null;
 
   if (browserService.isInDebugMode()) {
     logger.debug(`Debug mode enabled for URL: ${url}`);
   }
 
+  let browser: Browser | null = null;
+
   try {
     // Create a stealth browser with anti-detection measures
-    browser = await browserService.createBrowser();
-    
+    browser = await browserService.getOrCreateBrowser();
+
     // Create a stealth browser context
-    const { context, viewport } = await browserService.createContext(browser);
+    const {context, viewport} = await browserService.getOrCreateContext(browser);
 
     // Create a new page with human-like behavior
     page = await browserService.createPage(context, viewport);
@@ -122,10 +129,10 @@ export async function fetchUrl(args: any) {
       content: [{ type: "text", text: result.content }],
     };
   } finally {
-    // Clean up resources
-    await browserService.cleanup(browser, page);
-    
-    if (browserService.isInDebugMode()) {
+    if (options.closePage) {
+      logger.debug(`Closing page after fetching URL: ${url}`);
+      await browserService.closePage(page);
+    } else {
       logger.debug(`Browser and page kept open for debugging. URL: ${url}`);
     }
   }

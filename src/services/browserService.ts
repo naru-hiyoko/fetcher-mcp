@@ -8,15 +8,32 @@ import { FetchOptions } from "../types/index.js";
 export class BrowserService {
   private options: FetchOptions;
   private isDebugMode: boolean;
+  private browser: Browser | null = null;
+  private context: BrowserContext | null = null;
+  private viewport: {width: number, height: number} | null = null;
+  private static instance: BrowserService | null = null;
 
-  constructor(options: FetchOptions) {
+  private constructor(options: FetchOptions) {
     this.options = options;
     this.isDebugMode = process.argv.includes("--debug");
-    
+
     // Debug mode from options takes precedence over command line flag
     if (options.debug !== undefined) {
       this.isDebugMode = options.debug;
     }
+
+    BrowserService.instance = this;
+  }
+
+  public static createOrGetInstance(options: FetchOptions): BrowserService {
+    if (!BrowserService.instance) {
+      BrowserService.instance = new BrowserService(options);
+    }
+    return BrowserService.instance;
+  }
+
+  public static getInstance(): BrowserService | null {
+    return BrowserService.instance;
   }
 
   /**
@@ -149,12 +166,26 @@ export class BrowserService {
     });
   }
 
+  public async getBrowser(): Promise<Browser | null> {
+    return this.browser;
+  }
+
+  /**
+   * Get or create a browser instance
+   */
+  public async getOrCreateBrowser(): Promise<Browser> {
+    if (!this.browser) {
+      this.browser = await this.createBrowser();
+    }
+    return this.browser;
+  }
+
   /**
    * Create a new browser context with stealth configurations
    */
   public async createContext(browser: Browser): Promise<{ context: BrowserContext, viewport: {width: number, height: number} }> {
     const viewport = this.getRandomViewport();
-    
+
     const context = await browser.newContext({
       javaScriptEnabled: true,
       ignoreHTTPSErrors: true,
@@ -184,11 +215,23 @@ export class BrowserService {
 
     // Set up anti-detection measures
     await this.setupAntiDetection(context);
-    
+
     // Configure media handling
     await this.setupMediaHandling(context);
-    
+
     return { context, viewport };
+  }
+
+  /**
+   *  Get or create a browser context with anti-detection features
+   */
+  public async getOrCreateContext(browser: Browser): Promise<{ context: BrowserContext, viewport: {width: number, height: number} }> {
+    if (!this.context || !this.viewport) {
+      const {context, viewport} = await this.createContext(browser);
+      this.context = context;
+      this.viewport = viewport;
+    }
+    return { context: this.context, viewport: this.viewport };
   }
 
   /**
@@ -200,20 +243,25 @@ export class BrowserService {
   }
 
   /**
+   * Cloase a page
+   */
+  public async closePage(page: Page | null): Promise<void> {
+    if (page) {
+      await page
+        .close()
+        .catch((e) =>  logger.error(`Failed to close page: ${e.message}`));
+    }
+  }
+
+  /**
    * Clean up resources
    */
-  public async cleanup(browser: Browser | null, page: Page | null): Promise<void> {
-    if (!this.isDebugMode) {
-      if (page) {
-        await page
-          .close()
-          .catch((e) => logger.error(`Failed to close page: ${e.message}`));
-      }
-      if (browser) {
-        await browser
-          .close()
-          .catch((e) => logger.error(`Failed to close browser: ${e.message}`));
-      }
+  public async cleanup(): Promise<void> {
+    if (this.browser) {
+      await this.browser.close().catch((e) => logger.error(`Failed to close browser: ${e.message}`));
+      this.browser = null;
     }
+    BrowserService.instance = null;
+    return;
   }
 }
