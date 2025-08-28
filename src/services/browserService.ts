@@ -1,6 +1,9 @@
 import { Browser, BrowserContext, Page, chromium } from "playwright";
 import { logger } from "../utils/logger.js";
 import { FetchOptions } from "../types/index.js";
+import fs from 'fs';
+
+const STORAGE_STATE_PATH = '/tmp/storage.json';
 
 /**
  * Service for managing browser instances with anti-detection features
@@ -186,6 +189,10 @@ export class BrowserService {
   public async createContext(browser: Browser): Promise<{ context: BrowserContext, viewport: {width: number, height: number} }> {
     const viewport = this.getRandomViewport();
 
+    if (!fs.existsSync(STORAGE_STATE_PATH)) {
+      fs.writeFileSync(STORAGE_STATE_PATH, JSON.stringify({}));
+    }
+
     const context = await browser.newContext({
       javaScriptEnabled: true,
       ignoreHTTPSErrors: true,
@@ -197,6 +204,7 @@ export class BrowserService {
       locale: 'en-US',
       timezoneId: 'America/New_York',
       colorScheme: 'light',
+      storageState: STORAGE_STATE_PATH,
       acceptDownloads: true,
       extraHTTPHeaders: {
         'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
@@ -258,6 +266,12 @@ export class BrowserService {
    */
   public async cleanup(): Promise<void> {
     if (this.browser) {
+      if (this.context) {
+        await this.context.storageState({
+          path: STORAGE_STATE_PATH
+        });
+      }
+
       await this.browser.close().catch((e) => logger.error(`Failed to close browser: ${e.message}`));
       this.browser = null;
     }
