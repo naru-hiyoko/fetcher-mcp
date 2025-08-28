@@ -23,5 +23,5 @@ export async function closeBrowser(args: any) {
 
   await browserService.cleanup();
 
-  return { content: [{ type: "text", text: "Browser closed successfully." }] };
+  return { content: [{ type: "text", text: "Storage state saved and Browser closed successfully." }] };
 }

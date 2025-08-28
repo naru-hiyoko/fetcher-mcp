@@ -152,9 +152,10 @@ export class BrowserService {
    */
   public async createBrowser(): Promise<Browser> {
     const viewport = this.getRandomViewport();
-    
-    return await chromium.launch({ 
-      headless: !this.isDebugMode,
+    const headless = this.options.closePage ?? true
+
+    return await chromium.launch({
+      headless: headless,
       args: [
         '--disable-blink-features=AutomationControlled',
         '--disable-features=IsolateOrigins,site-per-process',
