@@ -8,7 +8,7 @@
     "fetcher-mcp": "build/index.js"
   },
   "files": [
-    "build",
+    "build/",
     "icon.svg"
   ],
   "scripts": {
