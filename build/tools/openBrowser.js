@@ -1,10 +1,10 @@
 import { BrowserService } from "../services/browserService.js";
 import { logger } from "../utils/logger.js";
 /**
- * Tool definition for open_browser_for_login
+ * Tool definition for open_browser
  */
-export const openBrowserForLoginTool = {
-    name: "open_browser_for_login",
+export const openBrowserTool = {
+    name: "open_browser",
     description: "Open a visible browser window so the user can manually log in to a site. Closes any existing browser instance first, then launches a new headful browser with media enabled and keeps the page open. After completing the login, call the close_browser tool to persist cookies/storage state.",
     inputSchema: {
         type: "object",
@@ -26,9 +26,9 @@ export const openBrowserForLoginTool = {
     },
 };
 /**
- * Implementation of the open_browser_for_login tool
+ * Implementation of the open_browser tool
  */
-export async function openBrowserForLogin(args) {
+export async function openBrowser(args) {
     const url = String(args?.url || "");
     if (!url) {
         logger.error(`URL parameter missing`);
