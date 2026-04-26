@@ -65,11 +65,6 @@ export const fetchUrlsTool = {
         description:
           "Whether to enable debug mode (showing browser window), overrides the --debug command line flag if specified",
       },
-      closePage: {
-        type: "boolean",
-        description:
-          "Whether to close the page after fetching, default is true. Set to false to keep the page open for login",
-      },
     },
     required: ["urls"],
   },
@@ -98,7 +93,7 @@ export async function fetchUrls(args: any) {
     navigationTimeout: Number(args?.navigationTimeout) || 10000,
     disableMedia: args?.disableMedia !== false,
     debug: args?.debug,
-    closePage: args?.closePage !== undefined ? args.closePage : true,
+    closePage: true,
   };
 
   // Create browser service
